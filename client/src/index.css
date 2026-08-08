@@ -1,0 +1,241 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #21184a;
+  --color-paper: #fff7df;
+  --color-panel: #ffffff;
+  --color-accent: #7657ff;
+  --color-rose: #ff4fa3;
+  --color-mauve: #b8a9ff;
+  --color-good: #36d68b;
+  --color-bad: #ff4b4b;
+  --color-yellow: #ffe44d;
+  --color-cyan: #44dcf3;
+  --color-orange: #ff8a34;
+
+  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-mono-chart: "JetBrains Mono", ui-monospace, monospace;
+  --font-body: "Work Sans", system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--color-paper);
+  background-image: radial-gradient(var(--color-mauve) 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+}
+
+::selection {
+  background: var(--color-rose);
+  color: var(--color-paper);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Signature interaction: every actionable surface is a physical arcade
+     button — hard offset shadow that collapses into a press on activation. */
+  .brutal-press {
+    box-shadow: 6px 6px 0 0 var(--color-ink);
+    transition: transform 0.16s cubic-bezier(.2,.9,.3,1.4), box-shadow 0.16s ease;
+  }
+  .brutal-press:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 0 var(--color-ink);
+  }
+  .brutal-press:active:not(:disabled) {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0 0 var(--color-ink);
+  }
+  .brutal-press:disabled {
+    opacity: 0.45;
+    box-shadow: 5px 5px 0 0 var(--color-ink);
+  }
+
+  .brutal-panel {
+    background: var(--color-panel);
+    border: 3px solid var(--color-ink);
+    border-radius: 0.65rem;
+    box-shadow: 7px 7px 0 var(--color-ink);
+  }
+
+  .brutal-btn {
+    box-shadow: 6px 6px 0 0 var(--color-ink);
+    transition: transform 0.16s cubic-bezier(.2,.9,.3,1.4), box-shadow 0.16s ease, filter 0.16s ease;
+    background: var(--color-panel);
+    border: 3px solid var(--color-ink);
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 0.875rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.55rem;
+    cursor: pointer;
+  }
+  .brutal-btn:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 0 var(--color-ink);
+    filter: saturate(1.2);
+  }
+  .brutal-btn:active:not(:disabled) {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0 0 var(--color-ink);
+  }
+  .brutal-btn:disabled {
+    opacity: 0.45;
+  }
+
+  .brutal-btn-accent {
+    background: var(--color-rose);
+    color: white;
+  }
+
+  .brutal-chip {
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border: 3px solid var(--color-ink);
+    border-radius: 999px;
+  }
+
+  .brutal-stub {
+    background: var(--color-panel);
+    border: 3px solid var(--color-ink);
+    font-family: var(--font-mono-chart);
+    font-weight: 700;
+  }
+
+  /* Torn backstage-pass edge for room codes / ticket-like stubs. */
+  .ticket-stub {
+    background: var(--color-panel);
+    border: 3px dashed var(--color-ink);
+    font-family: var(--font-mono-chart);
+    font-weight: 700;
+  }
+
+  .hazard-bar {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--color-yellow),
+      var(--color-yellow) 12px,
+      var(--color-rose) 12px,
+      var(--color-rose) 24px,
+      var(--color-cyan) 24px,
+      var(--color-cyan) 36px
+    );
+  }
+
+  /* Vinyl groove rings, used behind the disc motif. */
+  .vinyl-grooves {
+    background: repeating-radial-gradient(
+      circle at center,
+      var(--color-ink) 0px,
+      var(--color-ink) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  }
+
+  .app-shell { background: transparent; }
+  .site-header { background: rgba(255,247,223,.94); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 30; }
+  .logo-word { text-shadow: 3px 3px 0 var(--color-yellow); transform: rotate(-2deg); display: inline-block; }
+  .nav-pill:nth-child(1) { background: var(--color-yellow); }
+  .nav-pill:nth-child(2) { background: var(--color-cyan); }
+  .nav-pill:nth-child(3) { background: var(--color-rose); }
+  .nav-pill.is-active { background: var(--color-accent); color: white; transform: rotate(-2deg); }
+  .hero-stage { background: linear-gradient(120deg, var(--color-yellow) 0 48%, var(--color-cyan) 48% 100%); min-height: 58vh; }
+  .hero-stage::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg,transparent 0 50px,rgba(33,24,74,.08) 50px 53px); pointer-events:none; }
+  .hero-kicker, .eyebrow { display: inline-flex; align-items: center; gap: .45rem; width: fit-content; background: white; border: 3px solid var(--color-ink); border-radius: 999px; padding: .45rem .85rem; box-shadow: 4px 4px 0 var(--color-ink); font-family: var(--font-mono-chart); font-weight: 800; text-transform: uppercase; font-size: .75rem; }
+  .hero-title { text-shadow: 6px 6px 0 white, 10px 10px 0 var(--color-ink); }
+  .mode-row { position: relative; overflow: hidden; }
+  .mode-row:nth-child(1) { background: var(--color-rose); }
+  .mode-row:nth-child(2) { background: var(--color-yellow); }
+  .mode-row:nth-child(3) { background: var(--color-cyan); }
+  .mode-row:hover { color: var(--color-ink); filter: saturate(1.1); }
+  .mode-row:hover .mode-icon { transform: rotate(-10deg) scale(1.18); }
+  .mode-icon { background: white; border: 3px solid var(--color-ink); box-shadow: 5px 5px 0 var(--color-ink); padding: .45rem; border-radius: .7rem; transition: transform .2s cubic-bezier(.2,.9,.3,1.5); }
+  .game-page { position: relative; background-image: radial-gradient(rgba(33,24,74,.18) 1.4px, transparent 1.4px); background-size: 17px 17px; }
+  .game-page-yellow { background-color: #fff1a9; }
+  .game-page-cyan { background-color: #bff5ff; }
+  .game-page-pink { background-color: #ffd3e8; }
+  .game-title { font-family: var(--font-display); font-size: clamp(3rem, 9vw, 6rem); line-height: .85; text-transform: uppercase; text-shadow: 4px 4px 0 white, 7px 7px 0 var(--color-ink); }
+  .text-pink { color: var(--color-rose); }
+  .candy-panel { background: linear-gradient(145deg,#fff 0 72%,#e7e0ff 72%); }
+  .category-tile { background: white; border: 3px solid var(--color-ink); border-radius: .65rem; padding: 1rem .5rem; font-family: var(--font-display); font-size: 1.55rem; text-transform: uppercase; cursor: pointer; animation: tile-in .35s both; animation-delay: var(--tile-delay); }
+  .category-tile:nth-child(3n+1) { background: var(--color-yellow); }
+  .category-tile:nth-child(3n+2) { background: var(--color-cyan); }
+  .category-tile:nth-child(3n) { background: #ffb4d7; }
+  .category-tile.is-selected { background: var(--color-accent); color: white; transform: translate(3px,3px) rotate(-2deg); box-shadow: 2px 2px 0 var(--color-ink); }
+  .mode-tile { display:flex; align-items:center; justify-content:center; gap:.4rem; background:white; border:3px solid var(--color-ink); border-radius:.65rem; padding:.8rem .35rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
+  .mode-tile:nth-child(1) { background:#ffb4d7; }
+  .mode-tile:nth-child(2) { background:var(--color-yellow); }
+  .mode-tile:nth-child(3) { background:var(--color-cyan); }
+  .mode-tile.is-selected { background:var(--color-accent); color:white; transform:translate(3px,3px) rotate(-1deg); box-shadow:2px 2px 0 var(--color-ink); }
+  .challenge-tile { display:flex; flex-direction:column; align-items:center; gap:.35rem; border:3px solid var(--color-ink); border-radius:.75rem; padding:1.25rem .75rem; cursor:pointer; text-transform:uppercase; }
+  .challenge-tile strong { font-family:var(--font-display); font-size:2rem; line-height:1; }
+  .challenge-tile span { font-family:var(--font-mono-chart); font-size:.7rem; font-weight:800; }
+  .bg-yellow { background:var(--color-yellow); }
+  .bg-pink { background:#ff9dcb; }
+  .sound-toggle { display:flex; align-items:center; gap:.4rem; background:white; border:3px solid var(--color-ink); border-radius:999px; padding:.55rem .8rem; font-family:var(--font-mono-chart); font-size:.75rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
+  .question-count-tile { background:white; border:3px solid var(--color-ink); border-radius:.6rem; padding:.7rem .35rem; font-family:var(--font-display); font-size:1.6rem; cursor:pointer; }
+  .question-count-tile:nth-child(1) { background:#ffb4d7; }
+  .question-count-tile:nth-child(2) { background:var(--color-yellow); }
+  .question-count-tile:nth-child(3) { background:var(--color-cyan); }
+  .question-count-tile:nth-child(4) { background:#c6b8ff; }
+  .question-count-tile.is-selected { background:var(--color-accent); color:white; transform:translate(3px,3px) rotate(-2deg); box-shadow:2px 2px 0 var(--color-ink); }
+  .playback-mode-tile { display:flex; flex-direction:column; align-items:center; gap:.3rem; background:white; border:3px solid var(--color-ink); border-radius:.7rem; padding:1rem .5rem; cursor:pointer; }
+  .playback-mode-tile:first-child { background:var(--color-yellow); }
+  .playback-mode-tile:last-child { background:var(--color-cyan); }
+  .playback-mode-tile strong { font-family:var(--font-display); font-size:1.5rem; text-transform:uppercase; }
+  .playback-mode-tile span { font-family:var(--font-mono-chart); font-size:.7rem; font-weight:800; text-transform:uppercase; }
+  .playback-mode-tile.is-selected { background:var(--color-accent); color:white; transform:translate(3px,3px) rotate(-1deg); box-shadow:2px 2px 0 var(--color-ink); }
+  .party-host-display { background:linear-gradient(135deg,var(--color-yellow),#ffb4d7); }
+  .album-cover { width: 9rem; height: 9rem; object-fit: cover; border: 3px solid var(--color-ink); box-shadow: 5px 5px 0 var(--color-rose); }
+  .rotate-card { transform: rotate(-.5deg); }
+  .score-badge { display:flex; align-items:center; justify-content:center; gap:.35rem; min-width:6rem; background:var(--color-yellow); border:3px solid var(--color-ink); border-radius:.55rem; box-shadow:4px 4px 0 var(--color-ink); padding:.55rem .7rem; font-family:var(--font-mono-chart); font-weight:900; }
+  .bg-cyan { background: var(--color-cyan); }
+  .game-input { flex:1; min-width:0; background:white; border:3px solid var(--color-ink); border-radius:.65rem; box-shadow:6px 6px 0 var(--color-ink); padding:.9rem 1rem; font-family:var(--font-mono-chart); font-weight:800; outline:none; }
+  .game-input:focus { background:#fffbdc; transform:translate(-2px,-2px); box-shadow:8px 8px 0 var(--color-ink); }
+  .track-card { display:flex; gap:.8rem; align-items:center; background:white; border:3px solid var(--color-ink); border-radius:.55rem; box-shadow:4px 4px 0 var(--color-ink); padding:.7rem .85rem; font-weight:800; }
+  .track-card.is-found { background:var(--color-good); color:var(--color-ink); animation:correct-pop .35s cubic-bezier(.2,.9,.3,1.5); }
+  .error-bubble { background:#ffd7d7; border:3px solid var(--color-ink); padding:.75rem; font-family:var(--font-mono-chart); font-weight:700; }
+}
+
+@keyframes spin-record {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-record {
+  animation: spin-record 3s linear infinite;
+}
+
+@keyframes floaty { 50% { transform: translateY(-12px) rotate(4deg); } }
+@keyframes pop-in { from { opacity:0; transform:translateY(18px) scale(.96); } to { opacity:1; transform:none; } }
+@keyframes bounce-in { 0% { opacity:0; transform:scale(.86) rotate(-2deg); } 70% { transform:scale(1.03) rotate(.5deg); } 100% { opacity:1; transform:none; } }
+@keyframes tile-in { from { opacity:0; transform:translateY(12px) rotate(3deg); } }
+@keyframes correct-pop { 50% { transform:scale(1.04) rotate(-1deg); } }
+.animate-floaty { animation:floaty 3s ease-in-out infinite; }
+.animate-pop-in { animation:pop-in .45s ease-out both; }
+.animate-bounce-in { animation:bounce-in .55s cubic-bezier(.2,.9,.3,1.3) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-record, .animate-floaty, .animate-pop-in, .animate-bounce-in, .category-tile, .track-card.is-found {
+    animation: none;
+  }
+}

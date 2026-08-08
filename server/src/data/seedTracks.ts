@@ -1,0 +1,193 @@
+/** Curated pool of well-known tracks (title + artist + release year) for Higher/Lower and Name That Tune. */
+export interface SeedTrack {
+  title: string;
+  artist: string;
+  releaseYear: number;
+}
+
+export const SEED_TRACKS: SeedTrack[] = [
+  // 1960s
+  { title: "Hey Jude", artist: "The Beatles", releaseYear: 1968 },
+  { title: "Paint It Black", artist: "The Rolling Stones", releaseYear: 1966 },
+  { title: "Respect", artist: "Aretha Franklin", releaseYear: 1967 },
+  { title: "(Sittin' On) The Dock of the Bay", artist: "Otis Redding", releaseYear: 1968 },
+  { title: "Good Vibrations", artist: "The Beach Boys", releaseYear: 1966 },
+  { title: "My Girl", artist: "The Temptations", releaseYear: 1965 },
+  { title: "(I Can't Get No) Satisfaction", artist: "The Rolling Stones", releaseYear: 1965 },
+  { title: "California Dreamin'", artist: "The Mamas & the Papas", releaseYear: 1965 },
+  { title: "House of the Rising Sun", artist: "The Animals", releaseYear: 1964 },
+  { title: "Twist and Shout", artist: "The Beatles", releaseYear: 1963 },
+  { title: "Da Doo Ron Ron", artist: "The Crystals", releaseYear: 1963 },
+  { title: "Louie Louie", artist: "The Kingsmen", releaseYear: 1963 },
+  { title: "The Sound of Silence", artist: "Simon & Garfunkel", releaseYear: 1965 },
+  { title: "Light My Fire", artist: "The Doors", releaseYear: 1967 },
+  { title: "Purple Haze", artist: "Jimi Hendrix", releaseYear: 1967 },
+  { title: "I Heard It Through the Grapevine", artist: "Marvin Gaye", releaseYear: 1968 },
+  { title: "You Can't Hurry Love", artist: "The Supremes", releaseYear: 1966 },
+  { title: "Fortunate Son", artist: "Creedence Clearwater Revival", releaseYear: 1969 },
+  { title: "You Really Got Me", artist: "The Kinks", releaseYear: 1964 },
+  { title: "Brown Eyed Girl", artist: "Van Morrison", releaseYear: 1967 },
+  { title: "Sweet Caroline", artist: "Neil Diamond", releaseYear: 1969 },
+  { title: "My Generation", artist: "The Who", releaseYear: 1965 },
+
+  // 1970s
+  { title: "Bohemian Rhapsody", artist: "Queen", releaseYear: 1975 },
+  { title: "Rocket Man", artist: "Elton John", releaseYear: 1972 },
+  { title: "Superstition", artist: "Stevie Wonder", releaseYear: 1972 },
+  { title: "Dreams", artist: "Fleetwood Mac", releaseYear: 1977 },
+  { title: "Three Little Birds", artist: "Bob Marley", releaseYear: 1977 },
+  { title: "Comfortably Numb", artist: "Pink Floyd", releaseYear: 1979 },
+  { title: "Stairway to Heaven", artist: "Led Zeppelin", releaseYear: 1971 },
+  { title: "Imagine", artist: "John Lennon", releaseYear: 1971 },
+  { title: "American Pie", artist: "Don McLean", releaseYear: 1971 },
+  { title: "Dancing Queen", artist: "ABBA", releaseYear: 1976 },
+  { title: "Hotel California", artist: "Eagles", releaseYear: 1976 },
+  { title: "Stayin' Alive", artist: "Bee Gees", releaseYear: 1977 },
+  { title: "September", artist: "Earth, Wind & Fire", releaseYear: 1978 },
+  { title: "Piano Man", artist: "Billy Joel", releaseYear: 1973 },
+  { title: "Heart of Glass", artist: "Blondie", releaseYear: 1979 },
+  { title: "Born to Run", artist: "Bruce Springsteen", releaseYear: 1975 },
+  { title: "Sweet Home Alabama", artist: "Lynyrd Skynyrd", releaseYear: 1974 },
+  { title: "London Calling", artist: "The Clash", releaseYear: 1979 },
+  { title: "Hot Stuff", artist: "Donna Summer", releaseYear: 1979 },
+  { title: "Blitzkrieg Bop", artist: "Ramones", releaseYear: 1976 },
+
+  // 1980s
+  { title: "Back in Black", artist: "AC/DC", releaseYear: 1980 },
+  { title: "Billie Jean", artist: "Michael Jackson", releaseYear: 1983 },
+  { title: "Let's Dance", artist: "David Bowie", releaseYear: 1983 },
+  { title: "Purple Rain", artist: "Prince", releaseYear: 1984 },
+  { title: "I Wanna Dance with Somebody", artist: "Whitney Houston", releaseYear: 1987 },
+  { title: "Like a Prayer", artist: "Madonna", releaseYear: 1989 },
+  { title: "Sweet Child O' Mine", artist: "Guns N' Roses", releaseYear: 1987 },
+  { title: "Take On Me", artist: "a-ha", releaseYear: 1985 },
+  { title: "Every Breath You Take", artist: "The Police", releaseYear: 1983 },
+  { title: "Livin' on a Prayer", artist: "Bon Jovi", releaseYear: 1986 },
+  { title: "Africa", artist: "Toto", releaseYear: 1982 },
+  { title: "Don't Stop Believin'", artist: "Journey", releaseYear: 1981 },
+  { title: "Only in My Dreams", artist: "Debbie Gibson", releaseYear: 1986 },
+  { title: "Girls Just Want to Have Fun", artist: "Cyndi Lauper", releaseYear: 1983 },
+  { title: "Hungry Like the Wolf", artist: "Duran Duran", releaseYear: 1982 },
+  { title: "Everybody Wants to Rule the World", artist: "Tears for Fears", releaseYear: 1985 },
+  { title: "Faith", artist: "George Michael", releaseYear: 1987 },
+  { title: "Rhythm Nation", artist: "Janet Jackson", releaseYear: 1989 },
+  { title: "Never Gonna Give You Up", artist: "Rick Astley", releaseYear: 1987 },
+  { title: "Dancing in the Dark", artist: "Bruce Springsteen", releaseYear: 1984 },
+
+  // 1990s
+  { title: "Smells Like Teen Spirit", artist: "Nirvana", releaseYear: 1991 },
+  { title: "Enter Sandman", artist: "Metallica", releaseYear: 1991 },
+  { title: "Wonderwall", artist: "Oasis", releaseYear: 1995 },
+  { title: "I Want It That Way", artist: "Backstreet Boys", releaseYear: 1999 },
+  { title: "No Scrubs", artist: "TLC", releaseYear: 1999 },
+  { title: "...Baby One More Time", artist: "Britney Spears", releaseYear: 1998 },
+  { title: "Waterfalls", artist: "TLC", releaseYear: 1994 },
+  { title: "Torn", artist: "Natalie Imbruglia", releaseYear: 1997 },
+  { title: "Creep", artist: "Radiohead", releaseYear: 1993 },
+  { title: "Vogue", artist: "Madonna", releaseYear: 1990 },
+  { title: "Losing My Religion", artist: "R.E.M.", releaseYear: 1991 },
+  { title: "Barbie Girl", artist: "Aqua", releaseYear: 1997 },
+  { title: "Wannabe", artist: "Spice Girls", releaseYear: 1996 },
+  { title: "Fantasy", artist: "Mariah Carey", releaseYear: 1995 },
+  { title: "California Love", artist: "2Pac", releaseYear: 1995 },
+  { title: "Alive", artist: "Pearl Jam", releaseYear: 1991 },
+  { title: "Ironic", artist: "Alanis Morissette", releaseYear: 1996 },
+  { title: "Basket Case", artist: "Green Day", releaseYear: 1994 },
+  { title: "My Heart Will Go On", artist: "Celine Dion", releaseYear: 1997 },
+  { title: "Black Hole Sun", artist: "Soundgarden", releaseYear: 1994 },
+  { title: "Doo Wop (That Thing)", artist: "Lauryn Hill", releaseYear: 1998 },
+
+  // 2000s
+  { title: "Lose Yourself", artist: "Eminem", releaseYear: 2002 },
+  { title: "Viva la Vida", artist: "Coldplay", releaseYear: 2008 },
+  { title: "Poker Face", artist: "Lady Gaga", releaseYear: 2008 },
+  { title: "Hey Ya!", artist: "OutKast", releaseYear: 2003 },
+  { title: "Crazy in Love", artist: "Beyonce", releaseYear: 2003 },
+  { title: "Since U Been Gone", artist: "Kelly Clarkson", releaseYear: 2004 },
+  { title: "Mr. Brightside", artist: "The Killers", releaseYear: 2003 },
+  { title: "Umbrella", artist: "Rihanna", releaseYear: 2007 },
+  { title: "In Da Club", artist: "50 Cent", releaseYear: 2003 },
+  { title: "Toxic", artist: "Britney Spears", releaseYear: 2003 },
+  { title: "Complicated", artist: "Avril Lavigne", releaseYear: 2002 },
+  { title: "Yeah!", artist: "Usher", releaseYear: 2004 },
+  { title: "In the End", artist: "Linkin Park", releaseYear: 2000 },
+  { title: "Rehab", artist: "Amy Winehouse", releaseYear: 2006 },
+  { title: "Feel Good Inc.", artist: "Gorillaz", releaseYear: 2005 },
+  { title: "Seven Nation Army", artist: "The White Stripes", releaseYear: 2003 },
+  { title: "Promiscuous", artist: "Nelly Furtado", releaseYear: 2006 },
+  { title: "Sugar, We're Goin Down", artist: "Fall Out Boy", releaseYear: 2005 },
+  { title: "Fallin'", artist: "Alicia Keys", releaseYear: 2001 },
+  { title: "I Bet You Look Good on the Dancefloor", artist: "Arctic Monkeys", releaseYear: 2005 },
+
+  // 2010s
+  { title: "Rolling in the Deep", artist: "Adele", releaseYear: 2011 },
+  { title: "Summertime Sadness", artist: "Lana Del Rey", releaseYear: 2012 },
+  { title: "Roar", artist: "Katy Perry", releaseYear: 2013 },
+  { title: "Uptown Funk", artist: "Bruno Mars", releaseYear: 2014 },
+  { title: "Sugar", artist: "Maroon 5", releaseYear: 2015 },
+  { title: "Cheap Thrills", artist: "Sia", releaseYear: 2016 },
+  { title: "Pink + White", artist: "Frank Ocean", releaseYear: 2016 },
+  { title: "Shape of You", artist: "Ed Sheeran", releaseYear: 2017 },
+  { title: "HUMBLE.", artist: "Kendrick Lamar", releaseYear: 2017 },
+  { title: "Believer", artist: "Imagine Dragons", releaseYear: 2017 },
+  { title: "Sicko Mode", artist: "Travis Scott", releaseYear: 2018 },
+  { title: "Bad Guy", artist: "Billie Eilish", releaseYear: 2019 },
+  { title: "Circles", artist: "Post Malone", releaseYear: 2019 },
+  { title: "Old Town Road", artist: "Lil Nas X", releaseYear: 2019 },
+  { title: "Someone Like You", artist: "Adele", releaseYear: 2011 },
+  { title: "Get Lucky", artist: "Daft Punk", releaseYear: 2013 },
+  { title: "Happy", artist: "Pharrell Williams", releaseYear: 2013 },
+  { title: "Royals", artist: "Lorde", releaseYear: 2013 },
+  { title: "Call Me Maybe", artist: "Carly Rae Jepsen", releaseYear: 2011 },
+  { title: "Closer", artist: "The Chainsmokers", releaseYear: 2016 },
+  { title: "Take Me to Church", artist: "Hozier", releaseYear: 2013 },
+
+  // 2020s
+  { title: "Blinding Lights", artist: "The Weeknd", releaseYear: 2020 },
+  { title: "Levitating", artist: "Dua Lipa", releaseYear: 2020 },
+  { title: "Say So", artist: "Doja Cat", releaseYear: 2020 },
+  { title: "Peaches", artist: "Justin Bieber", releaseYear: 2021 },
+  { title: "Good 4 U", artist: "Olivia Rodrigo", releaseYear: 2021 },
+  { title: "Anti-Hero", artist: "Taylor Swift", releaseYear: 2022 },
+  { title: "Kill Bill", artist: "SZA", releaseYear: 2022 },
+  { title: "As It Was", artist: "Harry Styles", releaseYear: 2022 },
+  { title: "Watermelon Sugar", artist: "Harry Styles", releaseYear: 2020 },
+  { title: "drivers license", artist: "Olivia Rodrigo", releaseYear: 2021 },
+  { title: "Flowers", artist: "Miley Cyrus", releaseYear: 2023 },
+  { title: "Vampire", artist: "Olivia Rodrigo", releaseYear: 2023 },
+  { title: "Cruel Summer", artist: "Taylor Swift", releaseYear: 2023 },
+  { title: "Espresso", artist: "Sabrina Carpenter", releaseYear: 2024 },
+  { title: "BIRDS OF A FEATHER", artist: "Billie Eilish", releaseYear: 2024 },
+  { title: "Good Luck, Babe!", artist: "Chappell Roan", releaseYear: 2024 },
+  { title: "Beautiful Things", artist: "Benson Boone", releaseYear: 2024 },
+  { title: "greedy", artist: "Tate McRae", releaseYear: 2023 },
+  { title: "360", artist: "Charli xcx", releaseYear: 2024 },
+  { title: "Last Night", artist: "Morgan Wallen", releaseYear: 2023 },
+  { title: "Lose Control", artist: "Teddy Swims", releaseYear: 2023 },
+  { title: "Too Sweet", artist: "Hozier", releaseYear: 2024 },
+  { title: "A Bar Song (Tipsy)", artist: "Shaboozey", releaseYear: 2024 },
+  { title: "APT.", artist: "ROSE & Bruno Mars", releaseYear: 2024 },
+];
+
+export type Category = "general" | "1960s" | "1970s" | "1980s" | "1990s" | "2000s" | "2010s" | "2020s";
+
+export const CATEGORIES: { id: Category; label: string }[] = [
+  { id: "general", label: "General" },
+  { id: "1960s", label: "60s" },
+  { id: "1970s", label: "70s" },
+  { id: "1980s", label: "80s" },
+  { id: "1990s", label: "90s" },
+  { id: "2000s", label: "00s" },
+  { id: "2010s", label: "10s" },
+  { id: "2020s", label: "20s" },
+];
+
+export function isCategory(value: string): value is Category {
+  return CATEGORIES.some((c) => c.id === value);
+}
+
+export function tracksForCategory(category: Category): SeedTrack[] {
+  if (category === "general") return SEED_TRACKS;
+  const decadeStart = Number(category.slice(0, 4));
+  return SEED_TRACKS.filter((t) => Math.floor(t.releaseYear / 10) * 10 === decadeStart);
+}
