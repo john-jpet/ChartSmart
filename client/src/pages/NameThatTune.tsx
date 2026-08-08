@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Crown, Headphones, Radio, Sparkles, Users } from 'lucide-react'
+import { Crown, Flame, Headphones, Radio, Sparkles, Users, Volume2, VolumeX } from 'lucide-react'
 import { getSocket } from '../lib/socket'
 import type { Player, RoundStartPayload, RoundEndPayload, EndGamePayload } from '../lib/socket'
 import { getNameThatTuneRounds, CATEGORIES } from '../lib/api'
@@ -31,18 +31,22 @@ function TimerBar({ remainingMs, durationMs }: { remainingMs: number; durationMs
   )
 }
 
-function Leaderboard({ players, scores }: { players: Player[]; scores: Record<string, number> }) {
+function Leaderboard({ players, scores, streaks = {}, currentPlayerId }: { players: Player[]; scores: Record<string, number>; streaks?: Record<string, number>; currentPlayerId?: string }) {
   const sorted = [...players].sort((a, b) => (scores[b.id] ?? b.score) - (scores[a.id] ?? a.score))
   return (
     <div className="w-full flex flex-col gap-2.5">
       {sorted.map((p, i) => (
-        <div key={p.id} className="flex items-center justify-between brutal-panel px-4 py-2.5">
+        <div key={p.id} className={`flex items-center justify-between brutal-panel px-4 py-2.5 ${p.id === currentPlayerId ? 'leaderboard-self' : ''}`}>
           <span className="flex items-center gap-2 font-bold">
             <span className="font-mono-chart text-xs opacity-60 w-4">{i + 1}</span>
             {p.name}
             {p.isHost && <Crown className="w-3.5 h-3.5 text-rose" fill="currentColor" />}
+            {p.id === currentPlayerId && <span className="you-badge">YOU</span>}
           </span>
-          <span className="font-mono-chart font-bold text-lg">{scores[p.id] ?? p.score}</span>
+          <span className="flex items-center gap-3">
+            {(streaks[p.id] ?? p.streak) >= 2 && <span className="streak-badge"><Flame className="w-4 h-4" />{streaks[p.id] ?? p.streak}</span>}
+            <span className="font-mono-chart font-bold text-lg">{scores[p.id] ?? p.score}</span>
+          </span>
         </div>
       ))}
     </div>
@@ -52,6 +56,8 @@ function Leaderboard({ players, scores }: { players: Player[]; scores: Record<st
 function NameThatTune() {
   const socketRef = useRef(getSocket())
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const lobbyAudioRef = useRef<HTMLAudioElement | null>(null)
+  const roomCodeRef = useRef<string | null>(null)
 
   const [screen, setScreen] = useState<Screen>('menu')
   const [mode, setMode] = useState<Mode>('solo')
@@ -65,11 +71,16 @@ function NameThatTune() {
   const [isHost, setIsHost] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [lobbyTracks, setLobbyTracks] = useState<string[]>([])
+  const [lobbyTrackIndex, setLobbyTrackIndex] = useState(0)
+  const [lobbySoundOn, setLobbySoundOn] = useState(true)
 
   const [round, setRound] = useState<RoundStartPayload | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const [roundResult, setRoundResult] = useState<RoundEndPayload | null>(null)
   const [finalScores, setFinalScores] = useState<Record<string, number>>({})
+  const [finalPlayers, setFinalPlayers] = useState<Player[]>([])
   const roundStartClientTimeRef = useRef(0)
 
   const [soloRounds, setSoloRounds] = useState<NameThatTuneRound[]>([])
@@ -82,22 +93,47 @@ function NameThatTune() {
   const soloFinalizeRef = useRef<(() => void) | null>(null)
 
   const [now, setNow] = useState(() => Date.now())
+  roomCodeRef.current = roomCode
 
   useEffect(() => {
     const socket = socketRef.current
 
     function onRoomCreated({ roomCode: code }: { roomCode: string }) {
+      setLoading(false)
       setRoomCode(code)
       setIsHost(true)
+      setScreen('lobby')
+    }
+    function onRoomJoined({ roomCode: code }: { roomCode: string }) {
+      setLoading(false)
+      setRoomCode(code)
+      setIsHost(false)
       setScreen('lobby')
     }
     function onRoomUpdated({ players: list }: { players: Player[] }) {
       setPlayers(list)
     }
-    function onRoomError({ error: msg }: { error: string }) {
+    function onRoomError({ code, error: msg }: { code?: string; error: string }) {
       setError(msg)
+      setStarting(false)
+      setLoading(false)
+      if (code === 'INVALID_CODE' || code === 'ROOM_NOT_FOUND') {
+        setRoomCode(null)
+        setScreen('menu')
+      }
+    }
+    function onRoomCancelled({ error: msg }: { error: string }) {
+      audioRef.current?.pause()
+      lobbyAudioRef.current?.pause()
+      setError(msg)
+      setRoomCode(null)
+      setPlayers([])
+      setIsHost(false)
+      setStarting(false)
+      setScreen('menu')
     }
     function onRoundStart(payload: RoundStartPayload) {
+      setStarting(false)
       setRound(payload)
       setSelected(null)
       setRoundResult(null)
@@ -110,25 +146,55 @@ function NameThatTune() {
     }
     function onEndGame(payload: EndGamePayload) {
       setFinalScores(payload.scores)
+      setFinalPlayers(payload.players)
       setScreen('end')
     }
 
     socket.on('room:created', onRoomCreated)
+    socket.on('room:joined', onRoomJoined)
     socket.on('room:updated', onRoomUpdated)
     socket.on('room:error', onRoomError)
+    socket.on('room:cancelled', onRoomCancelled)
     socket.on('game:round_start', onRoundStart)
     socket.on('game:round_end', onRoundEnd)
     socket.on('game:end_game', onEndGame)
 
     return () => {
       socket.off('room:created', onRoomCreated)
+      socket.off('room:joined', onRoomJoined)
       socket.off('room:updated', onRoomUpdated)
       socket.off('room:error', onRoomError)
+      socket.off('room:cancelled', onRoomCancelled)
       socket.off('game:round_start', onRoundStart)
       socket.off('game:round_end', onRoundEnd)
       socket.off('game:end_game', onEndGame)
     }
   }, [])
+
+  useEffect(() => {
+    if (screen !== 'menu' || mode === 'join') return
+    const timer = setTimeout(() => { void getNameThatTuneRounds(1, category).catch(() => {}) }, 250)
+    return () => clearTimeout(timer)
+  }, [screen, mode, category])
+
+  useEffect(() => () => {
+    if (roomCodeRef.current) socketRef.current.emit('room:leave')
+  }, [])
+
+  useEffect(() => {
+    lobbyAudioRef.current?.pause()
+    lobbyAudioRef.current = null
+    if (screen !== 'lobby' || !isHost || !lobbySoundOn || !lobbyTracks.length) return
+    const audio = new Audio(lobbyTracks[lobbyTrackIndex % lobbyTracks.length])
+    audio.volume = 0.35
+    audio.onended = () => setLobbyTrackIndex((index) => (index + 1) % lobbyTracks.length)
+    lobbyAudioRef.current = audio
+    audio.play().catch(() => {})
+    return () => {
+      audio.onended = null
+      audio.pause()
+    }
+  }, [screen, isHost, lobbySoundOn, lobbyTracks, lobbyTrackIndex])
 
   // Drives the visible countdown for both multiplayer and solo rounds.
   useEffect(() => {
@@ -232,6 +298,12 @@ function NameThatTune() {
 
   function createRoom() {
     setError(null)
+    setLoading(true)
+    setLobbyTracks([])
+    setLobbyTrackIndex(0)
+    void getNameThatTuneRounds(5, category)
+      .then((data) => setLobbyTracks(data.rounds.map((item) => item.previewUrl)))
+      .catch(() => {})
     socketRef.current.emit('room:create', {
       hostName: playerName || 'Host',
       settings: { totalRounds: questionCount, category, playbackMode },
@@ -241,13 +313,17 @@ function NameThatTune() {
   function joinRoom() {
     setError(null)
     const code = roomCodeInput.trim().toUpperCase()
-    setRoomCode(code)
+    if (!code) {
+      setError('Enter a room code first.')
+      return
+    }
+    setLoading(true)
     socketRef.current.emit('room:join', { roomCode: code, playerName: playerName || 'Player' })
-    setScreen('lobby')
   }
 
   function startGame() {
-    if (!roomCode) return
+    if (!roomCode || starting) return
+    setStarting(true)
     socketRef.current.emit('room:start', { roomCode })
   }
 
@@ -258,6 +334,8 @@ function NameThatTune() {
   }
 
   function playAgain() {
+    if (roomCodeRef.current) socketRef.current.emit('room:leave')
+    lobbyAudioRef.current?.pause()
     setScreen('menu')
     setRoomCode(null)
     setPlayers([])
@@ -265,11 +343,15 @@ function NameThatTune() {
     setRound(null)
     setRoundResult(null)
     setFinalScores({})
+    setFinalPlayers([])
     setSoloRounds([])
     setSoloIndex(0)
     setSoloScore(0)
     setSoloSelected(null)
     setSoloLastCorrect(null)
+    setStarting(false)
+    setLobbyTracks([])
+    setLobbyTrackIndex(0)
   }
 
   const soloRound = soloRounds[soloIndex]
@@ -356,11 +438,11 @@ function NameThatTune() {
               </div>
             </div>
           )}
-          {mode !== 'solo' && (
+          {(mode === 'join' || (mode === 'create' && playbackMode === 'remote')) && (
             <input
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Your name"
+              placeholder={mode === 'create' ? 'Host player name' : 'Your name'}
               className="game-input"
             />
           )}
@@ -387,11 +469,27 @@ function NameThatTune() {
         <div className="w-full max-w-sm flex flex-col items-center gap-5">
           <p className="font-mono-chart text-xs uppercase opacity-60">Backstage pass</p>
           <div className="ticket-stub px-6 py-3 text-3xl tracking-[0.3em]">{roomCode}</div>
-          <Leaderboard players={players} scores={{}} />
+          <div className="brutal-panel bg-white w-full p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b-[3px] border-ink pb-2">
+              <p className="font-display uppercase text-2xl">Players joined</p>
+              <span className="score-badge !min-w-0 !py-1 !px-2">{players.length}</span>
+            </div>
+            {players.length > 0 ? (
+              <Leaderboard players={players} scores={{}} currentPlayerId={socketRef.current.id} />
+            ) : (
+              <p className="font-mono-chart text-sm text-center py-5 opacity-60">Waiting for players to enter the code…</p>
+            )}
+          </div>
           {isHost ? (
-            <button onClick={startGame} disabled={players.length < 1} className="brutal-btn brutal-btn-accent px-8">
-              Start game
-            </button>
+            <>
+              <button onClick={() => setLobbySoundOn((value) => !value)} className="sound-toggle brutal-press">
+                {lobbySoundOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                {lobbySoundOn ? 'Lobby music on' : 'Lobby music off'}
+              </button>
+              <button onClick={startGame} disabled={players.length < 1 || starting} className="brutal-btn brutal-btn-accent px-8">
+                {starting ? 'Loading round…' : 'Start game'}
+              </button>
+            </>
           ) : (
             <p className="font-mono-chart text-sm opacity-60">waiting for host to start…</p>
           )}
@@ -417,7 +515,7 @@ function NameThatTune() {
                 key={opt}
                 onClick={() => submitAnswer(i)}
                 disabled={selected !== null}
-                className={`brutal-btn text-left ${selected === i ? 'brutal-btn-accent' : ''}`}
+                className={`brutal-btn answer-option text-left ${selected === i ? 'brutal-btn-accent' : ''}`}
               >
                 {opt}
               </button>
@@ -440,14 +538,14 @@ function NameThatTune() {
               {round.options[roundResult.correctAnswerIndex]}
             </span>
           </p>
-          <Leaderboard players={players} scores={roundResult.scores} />
+          <Leaderboard players={players} scores={roundResult.scores} streaks={roundResult.streaks} currentPlayerId={socketRef.current.id} />
         </div>
       )}
 
       {screen === 'end' && (
         <div className="w-full max-w-sm flex flex-col items-center gap-5">
           <h2 className="font-display uppercase text-2xl">Final scores</h2>
-          <Leaderboard players={players} scores={finalScores} />
+          <Leaderboard players={finalPlayers} scores={finalScores} currentPlayerId={socketRef.current.id} />
           <button onClick={playAgain} className="brutal-btn brutal-btn-accent px-8">
             Play again
           </button>
@@ -470,7 +568,7 @@ function NameThatTune() {
                 key={opt}
                 onClick={() => selectSoloAnswer(i)}
                 disabled={soloSelected !== null}
-                className={`brutal-btn text-left ${soloSelected === i ? 'brutal-btn-accent' : ''}`}
+                className={`brutal-btn answer-option text-left ${soloSelected === i ? 'brutal-btn-accent' : ''}`}
               >
                 {opt}
               </button>

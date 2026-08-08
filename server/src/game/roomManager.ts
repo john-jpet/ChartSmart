@@ -5,6 +5,7 @@ export interface Player {
   name: string;
   score: number;
   isHost: boolean;
+  streak: number;
 }
 
 export interface GameSettings {
@@ -54,7 +55,7 @@ class RoomManager {
     const room: Room = {
       code,
       hostId,
-      players: new Map([[hostId, { id: hostId, name: hostName, score: 0, isHost: true }]]),
+      players: new Map([[hostId, { id: hostId, name: hostName, score: 0, isHost: true, streak: 0 }]]),
       settings,
       state: "LOBBY",
       round: 0,
@@ -72,10 +73,21 @@ class RoomManager {
     return this.rooms.get(code.toUpperCase());
   }
 
+  getRoomForPlayer(playerId: string): Room | undefined {
+    return Array.from(this.rooms.values()).find((room) => room.players.has(playerId));
+  }
+
+  deleteRoom(code: string): void {
+    const room = this.getRoom(code);
+    if (!room) return;
+    this.clearTimers(room);
+    this.rooms.delete(room.code);
+  }
+
   joinRoom(code: string, playerId: string, playerName: string): Room | null {
     const room = this.getRoom(code);
     if (!room || room.state !== "LOBBY") return null;
-    room.players.set(playerId, { id: playerId, name: playerName, score: 0, isHost: false });
+    room.players.set(playerId, { id: playerId, name: playerName, score: 0, isHost: false, streak: 0 });
     return room;
   }
 
@@ -87,13 +99,6 @@ class RoomManager {
           this.clearTimers(room);
           this.rooms.delete(room.code);
           return null;
-        }
-        if (room.hostId === playerId) {
-          const nextHost = room.players.values().next().value;
-          if (nextHost) {
-            nextHost.isHost = true;
-            room.hostId = nextHost.id;
-          }
         }
         return room;
       }

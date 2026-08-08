@@ -1,5 +1,6 @@
 import { SeedTrack, Category, tracksForCategory } from "../data/seedTracks";
 import { searchTracks } from "../services/itunes";
+import { getArtistTopTracks } from "../services/lastfm";
 
 export interface RoundData {
   trackKey: string;
@@ -24,16 +25,21 @@ const expandedPoolCache = new Map<Category, Promise<SeedTrack[]>>();
 const EXPANDED_POOL_SIZE = 100;
 const DISCOVERY_RESULTS_PER_ARTIST = 50;
 const MAX_RANKED_CANDIDATES_PER_ARTIST = 10;
+const MIN_DISCOVERED_LISTENERS = 50_000;
+const MIN_DISCOVERED_PLAYS = 500_000;
 
-function canonicalSongKey(artist: string, title: string): string {
-  const cleanTitle = title
+function canonicalTitle(title: string): string {
+  return title
     .toLowerCase()
     .replace(/\([^)]*(remaster|version|edit|mix)[^)]*\)/g, "")
     .replace(/\[[^\]]*\]/g, "")
     .replace(/\s+-\s+(remaster(ed)?|single version|radio edit).*$/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
-  return `${artist.toLowerCase()}::${cleanTitle}`;
+}
+
+function canonicalSongKey(artist: string, title: string): string {
+  return `${artist.toLowerCase()}::${canonicalTitle(title)}`;
 }
 
 function isStandardSongVersion(title: string): boolean {
@@ -55,10 +61,18 @@ async function expandedTracksForCategory(category: Category): Promise<SeedTrack[
     const candidatesByArtist: { track: SeedTrack; media: TrackMedia }[][] = [];
 
     for (const artist of artists) {
-      const results = await searchTracks(artist, DISCOVERY_RESULTS_PER_ARTIST);
+      const [results, rankedTracks] = await Promise.all([
+        searchTracks(artist, DISCOVERY_RESULTS_PER_ARTIST),
+        getArtistTopTracks(artist, 20),
+      ]);
+      const familiarity = new Map(rankedTracks.map((track, rank) => [canonicalTitle(track.title), { ...track, rank }]));
       const artistCandidates: { track: SeedTrack; media: TrackMedia }[] = [];
       const artistSeen = new Set<string>();
-      for (const result of results) {
+      const familiarResults = results
+        .map((result) => ({ result, stats: familiarity.get(canonicalTitle(result.title)) }))
+        .filter(({ stats }) => stats && (stats.listeners >= MIN_DISCOVERED_LISTENERS || stats.playcount >= MIN_DISCOVERED_PLAYS))
+        .sort((a, b) => (a.stats?.rank ?? 999) - (b.stats?.rank ?? 999));
+      for (const { result } of familiarResults) {
         if (artistCandidates.length >= MAX_RANKED_CANDIDATES_PER_ARTIST) break;
         if (!result.previewUrl || !result.releaseYear) continue;
         if (Math.floor(result.releaseYear / 10) * 10 !== decadeStart) continue;

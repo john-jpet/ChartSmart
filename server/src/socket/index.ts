@@ -12,19 +12,45 @@ const MAX_ANSWER_SCORE = 1000;
 const MIN_ANSWER_SCORE = 100;
 
 function broadcastRoomUpdate(io: Server, room: Room) {
-  io.to(room.code).emit("room:updated", { roomCode: room.code, players: roomManager.playersList(room) });
+  const players = visiblePlayers(room);
+  io.to(room.code).emit("room:updated", { roomCode: room.code, players });
+}
+
+function visiblePlayers(room: Room) {
+  return roomManager.playersList(room).filter(
+    (player) => room.settings.playbackMode === "remote" || !player.isHost
+  );
 }
 
 function currentScores(room: Room): Record<string, number> {
   const scores: Record<string, number> = {};
   for (const player of room.players.values()) {
+    if (room.settings.playbackMode === "party" && player.isHost) continue;
     scores[player.id] = player.score;
   }
   return scores;
 }
 
+function currentStreaks(room: Room): Record<string, number> {
+  const streaks: Record<string, number> = {};
+  for (const player of visiblePlayers(room)) streaks[player.id] = player.streak;
+  return streaks;
+}
+
 async function startRound(io: Server, room: Room) {
-  const roundData = await selectRound(room.usedTrackIds, room.settings.category);
+  // Lock immediately, before the asynchronous catalog lookup, so repeated
+  // start clicks cannot launch overlapping rounds.
+  room.state = "ROUND_START";
+  let roundData;
+  try {
+    roundData = await selectRound(room.usedTrackIds, room.settings.category);
+  } catch {
+    io.to(room.code).emit("room:cancelled", { error: "The next round could not be loaded." });
+    room.state = "END_GAME";
+    roomManager.deleteRoom(room.code);
+    return;
+  }
+  if (roomManager.getRoom(room.code) !== room || room.state !== "ROUND_START") return;
   if (!roundData) {
     // Ran out of playable tracks — end the game early with whatever scores exist.
     endGame(io, room);
@@ -58,19 +84,20 @@ function endRound(io: Server, room: Room) {
   if (room.state !== "PLAYING") return;
   room.state = "ROUND_RESULT";
 
-  for (const [playerId, answer] of room.answers.entries()) {
-    if (answer.optionIndex === room.currentCorrectIndex) {
-      const player = room.players.get(playerId);
-      if (!player) continue;
+  for (const player of visiblePlayers(room)) {
+    const answer = room.answers.get(player.id);
+    if (answer?.optionIndex === room.currentCorrectIndex) {
       const speedBonus = Math.max(0, ROUND_ANSWER_WINDOW_MS - answer.answeredAtMs);
       const points = MIN_ANSWER_SCORE + Math.round((speedBonus / ROUND_ANSWER_WINDOW_MS) * (MAX_ANSWER_SCORE - MIN_ANSWER_SCORE));
       player.score += points;
-    }
+      player.streak += 1;
+    } else player.streak = 0;
   }
 
   io.to(room.code).emit("game:round_end", {
     correctAnswerIndex: room.currentCorrectIndex,
     scores: currentScores(room),
+    streaks: currentStreaks(room),
   });
 
   if (room.round >= room.settings.totalRounds) {
@@ -85,7 +112,29 @@ function endRound(io: Server, room: Room) {
 function endGame(io: Server, room: Room) {
   room.state = "END_GAME";
   roomManager.clearTimers(room);
-  io.to(room.code).emit("game:end_game", { scores: currentScores(room) });
+  io.to(room.code).emit("game:end_game", {
+    scores: currentScores(room),
+    players: visiblePlayers(room),
+  });
+}
+
+function leaveCurrentRoom(io: Server, socket: Socket) {
+  const room = roomManager.getRoomForPlayer(socket.id);
+  if (!room) return;
+
+  if (room.hostId === socket.id) {
+    room.state = "END_GAME";
+    if (room.players.size > 1) {
+      io.to(room.code).emit("room:cancelled", { error: "The host left, so the room was cancelled." });
+    }
+    roomManager.deleteRoom(room.code);
+    io.in(room.code).socketsLeave(room.code);
+    return;
+  }
+
+  roomManager.removePlayer(socket.id);
+  socket.leave(room.code);
+  broadcastRoomUpdate(io, room);
 }
 
 export function registerSocketHandlers(io: Server) {
@@ -108,19 +157,30 @@ export function registerSocketHandlers(io: Server) {
     );
 
     socket.on("room:join", ({ roomCode, playerName }: { roomCode: string; playerName: string }) => {
-      const room = roomManager.joinRoom(roomCode, socket.id, playerName || "Player");
+      const normalizedCode = String(roomCode || "").trim().toUpperCase();
+      if (!/^[A-Z2-9]{5}$/.test(normalizedCode)) {
+        socket.emit("room:error", { code: "INVALID_CODE", error: "Enter a valid 5-character room code." });
+        return;
+      }
+      const room = roomManager.joinRoom(normalizedCode, socket.id, String(playerName || "Player").trim().slice(0, 24));
       if (!room) {
-        socket.emit("room:error", { error: "Room not found or already in progress" });
+        socket.emit("room:error", { code: "ROOM_NOT_FOUND", error: "Room not found, or the game has already started." });
         return;
       }
       socket.join(room.code);
+      socket.emit("room:joined", { roomCode: room.code });
       broadcastRoomUpdate(io, room);
     });
 
     socket.on("room:start", ({ roomCode }: { roomCode: string }) => {
       const room = roomManager.getRoom(roomCode);
       if (!room || room.hostId !== socket.id || room.state !== "LOBBY") return;
-      startRound(io, room);
+      const contestants = roomManager.playersList(room).filter((player) => room.settings.playbackMode === "remote" || !player.isHost);
+      if (contestants.length === 0) {
+        socket.emit("room:error", { code: "NO_PLAYERS", error: "Wait for at least one player to join." });
+        return;
+      }
+      void startRound(io, room);
     });
 
     socket.on(
@@ -128,14 +188,14 @@ export function registerSocketHandlers(io: Server) {
       ({ roomCode, optionIndex }: { roomCode: string; optionIndex: number; clientTimeMs?: number }) => {
         const room = roomManager.getRoom(roomCode);
         if (!room || room.state !== "PLAYING" || room.roundStartedAt === null) return;
+        if (room.settings.playbackMode === "party" && room.hostId === socket.id) return;
+        if (!Number.isInteger(optionIndex) || optionIndex < 0 || optionIndex > 3) return;
         if (room.answers.has(socket.id)) return;
         room.answers.set(socket.id, { optionIndex, answeredAtMs: Date.now() - room.roundStartedAt });
       }
     );
 
-    socket.on("disconnect", () => {
-      const room = roomManager.removePlayer(socket.id);
-      if (room) broadcastRoomUpdate(io, room);
-    });
+    socket.on("room:leave", () => leaveCurrentRoom(io, socket));
+    socket.on("disconnect", () => leaveCurrentRoom(io, socket));
   });
 }

@@ -16,6 +16,7 @@ export interface Player {
   name: string;
   score: number;
   isHost: boolean;
+  streak: number;
 }
 
 export interface RoundStartPayload {
@@ -31,8 +32,10 @@ export interface RoundStartPayload {
 export interface RoundEndPayload {
   correctAnswerIndex: number;
   scores: Record<string, number>;
+  streaks: Record<string, number>;
 }
 
 export interface EndGamePayload {
   scores: Record<string, number>;
+  players: Player[];
 }

@@ -27,6 +27,12 @@ interface LastFmArtistInfoResponse {
   message?: string;
 }
 
+interface LastFmTopTracksResponse {
+  toptracks?: {
+    track?: { name: string; playcount?: string; listeners?: string }[];
+  };
+}
+
 async function lastfmGet<T extends {}>(params: Record<string, string>): Promise<T> {
   const cacheKey = `lastfm:${JSON.stringify(params)}`;
   return cachedFetch(cacheKey, () =>
@@ -79,4 +85,23 @@ export async function getArtistInfo(artistName: string): Promise<Artist | null> 
     playcount: data.artist.stats?.playcount ? Number(data.artist.stats.playcount) : undefined,
     imageUrl: largestImage?.["#text"] || undefined,
   };
+}
+
+export interface RankedTrack {
+  title: string;
+  playcount: number;
+  listeners: number;
+}
+
+export async function getArtistTopTracks(artistName: string, limit = 20): Promise<RankedTrack[]> {
+  const data = await lastfmGet<LastFmTopTracksResponse>({
+    method: "artist.getTopTracks",
+    artist: artistName,
+    limit: String(limit),
+  });
+  return (data.toptracks?.track ?? []).map((track) => ({
+    title: track.name,
+    playcount: Number(track.playcount) || 0,
+    listeners: Number(track.listeners) || 0,
+  }));
 }
