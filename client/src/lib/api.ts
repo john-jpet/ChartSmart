@@ -61,7 +61,8 @@ export const CATEGORIES: { id: Category; label: string }[] = [
 ];
 
 async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(path);
+  const apiOrigin = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+  const response = await fetch(`${apiOrigin}${path}`);
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error || `Request failed: ${response.status}`);
