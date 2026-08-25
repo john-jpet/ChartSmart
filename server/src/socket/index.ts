@@ -3,7 +3,7 @@ import { roomManager, Room } from "../game/roomManager";
 import { selectRound } from "../game/nameThatTune";
 import { isCategory, Category } from "../data/seedTracks";
 
-const ROUND_ANSWER_WINDOW_MS = 8000;
+const ROUND_ANSWER_WINDOW_MS = 10000;
 const ROUND_RESULT_DISPLAY_MS = 4000;
 const DEFAULT_TOTAL_ROUNDS = 5;
 const MIN_TOTAL_ROUNDS = 5;

@@ -7,10 +7,10 @@ import type { NameThatTuneRound, Category } from '../lib/api'
 import VinylBadge from '../components/VinylBadge'
 import JoinQrCode from '../components/JoinQrCode'
 
-const SNIPPET_DURATION_MS = 8000
+const SNIPPET_DURATION_MS = 10000
 const DEFAULT_QUESTION_COUNT = 5
 const QUESTION_COUNTS = [5, 10, 15, 20] as const
-const SOLO_ANSWER_WINDOW_MS = 8000
+const SOLO_ANSWER_WINDOW_MS = 10000
 const SOLO_RESULT_DISPLAY_MS = 2500
 const SOLO_MIN_SCORE = 100
 const SOLO_MAX_SCORE = 1000
