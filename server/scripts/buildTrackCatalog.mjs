@@ -10,7 +10,7 @@ if (!sourcePath) {
 }
 
 const charts = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
-const decades = [1960, 1970, 1980, 1990, 2000, 2010, 2020];
+const decades = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
 const MAX_TRACKS_PER_DECADE = 500;
 const MAX_TRACKS_PER_ARTIST = 15;
 

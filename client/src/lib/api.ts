@@ -47,10 +47,11 @@ export interface NameThatTuneRound {
   correctIndex: number;
 }
 
-export type Category = "general" | "1960s" | "1970s" | "1980s" | "1990s" | "2000s" | "2010s" | "2020s";
+export type Category = "general" | "1950s" | "1960s" | "1970s" | "1980s" | "1990s" | "2000s" | "2010s" | "2020s";
 
 export const CATEGORIES: { id: Category; label: string }[] = [
   { id: "general", label: "General" },
+  { id: "1950s", label: "50s" },
   { id: "1960s", label: "60s" },
   { id: "1970s", label: "70s" },
   { id: "1980s", label: "80s" },
