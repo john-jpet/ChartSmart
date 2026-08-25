@@ -10,6 +10,7 @@ for (const { id } of CATEGORIES) {
   const tracks = nameThatTuneTracksForCategory(id);
   const keys = tracks.map((track) => `${canonical(track.artist)}::${canonical(track.title)}`);
   const duplicates = keys.length - new Set(keys).size;
+  if (duplicates) console.log(`duplicate keys in ${id}:`, keys.filter((key, index) => keys.indexOf(key) !== index));
   if (id !== "general") {
     const decade = Number(id.slice(0, 4));
     const wrongDecade = tracks.filter(
