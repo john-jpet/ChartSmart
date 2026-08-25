@@ -5,6 +5,7 @@ import type { Player, RoundStartPayload, RoundEndPayload, EndGamePayload } from 
 import { getNameThatTuneRounds, CATEGORIES } from '../lib/api'
 import type { NameThatTuneRound, Category } from '../lib/api'
 import VinylBadge from '../components/VinylBadge'
+import JoinQrCode from '../components/JoinQrCode'
 
 const SNIPPET_DURATION_MS = 8000
 const DEFAULT_QUESTION_COUNT = 5
@@ -59,13 +60,15 @@ function NameThatTune() {
   const lobbyAudioRef = useRef<HTMLAudioElement | null>(null)
   const roomCodeRef = useRef<string | null>(null)
 
+  const joinCodeFromUrl = new URLSearchParams(window.location.search).get('join')?.trim().toUpperCase() || ''
+
   const [screen, setScreen] = useState<Screen>('menu')
-  const [mode, setMode] = useState<Mode>('solo')
+  const [mode, setMode] = useState<Mode>(joinCodeFromUrl ? 'join' : 'solo')
   const [category, setCategory] = useState<Category>('general')
   const [questionCount, setQuestionCount] = useState(DEFAULT_QUESTION_COUNT)
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>('party')
   const [playerName, setPlayerName] = useState('')
-  const [roomCodeInput, setRoomCodeInput] = useState('')
+  const [roomCodeInput, setRoomCodeInput] = useState(joinCodeFromUrl)
   const [roomCode, setRoomCode] = useState<string | null>(null)
   const [players, setPlayers] = useState<Player[]>([])
   const [isHost, setIsHost] = useState(false)
@@ -176,6 +179,13 @@ function NameThatTune() {
     const timer = setTimeout(() => { void getNameThatTuneRounds(1, category).catch(() => {}) }, 250)
     return () => clearTimeout(timer)
   }, [screen, mode, category])
+
+  useEffect(() => {
+    if (!joinCodeFromUrl) return
+    const url = new URL(window.location.href)
+    url.searchParams.delete('join')
+    window.history.replaceState({}, '', url)
+  }, [])
 
   useEffect(() => () => {
     if (roomCodeRef.current) socketRef.current.emit('room:leave')
@@ -469,6 +479,12 @@ function NameThatTune() {
         <div className="w-full max-w-sm flex flex-col items-center gap-5">
           <p className="font-mono-chart text-xs uppercase opacity-60">Backstage pass</p>
           <div className="ticket-stub px-6 py-3 text-3xl tracking-[0.3em]">{roomCode}</div>
+          {isHost && roomCode && (
+            <div className="flex flex-col items-center gap-2">
+              <JoinQrCode value={`${window.location.origin}${import.meta.env.BASE_URL}name-that-tune?join=${roomCode}`} />
+              <p className="font-mono-chart text-xs opacity-60">Scan to join</p>
+            </div>
+          )}
           <div className="brutal-panel bg-white w-full p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between border-b-[3px] border-ink pb-2">
               <p className="font-display uppercase text-2xl">Players joined</p>
