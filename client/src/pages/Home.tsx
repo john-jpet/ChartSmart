@@ -29,7 +29,7 @@ const MODES = [
     icon: Clapperboard,
     title: 'Name That Movie',
     description: 'Identify movies from cinematic stills, backed by a cue from the original soundtrack when available.',
-    players: '1–8 players',
+    players: '2+ players',
   },
 ]
 
