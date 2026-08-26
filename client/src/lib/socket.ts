@@ -24,6 +24,7 @@ export interface RoundStartPayload {
   totalRounds: number;
   previewUrl?: string;
   artworkUrl?: string;
+  imageUrl?: string;
   options: string[];
   durationMs: number;
   playbackMode: "party" | "remote";

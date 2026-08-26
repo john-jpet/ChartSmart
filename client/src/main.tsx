@@ -7,6 +7,7 @@ import Home from './pages/Home.tsx'
 import HigherLower from './pages/HigherLower.tsx'
 import AlbumBlitz from './pages/AlbumBlitz.tsx'
 import NameThatTune from './pages/NameThatTune.tsx'
+import NameThatMovie from './pages/NameThatMovie.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="higher-lower" element={<HigherLower />} />
           <Route path="album-blitz" element={<AlbumBlitz />} />
           <Route path="name-that-tune" element={<NameThatTune />} />
+          <Route path="name-that-movie" element={<NameThatMovie />} />
         </Route>
       </Routes>
     </BrowserRouter>
