@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Crown, Flame, Headphones, Radio, Sparkles, Users, Volume2, VolumeX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Crown, Flame, Headphones, Radio, Sparkles, Users, Volume2, VolumeX } from 'lucide-react'
 import { getSocket } from '../lib/socket'
 import type { Player, RoundStartPayload, RoundEndPayload, EndGamePayload } from '../lib/socket'
 import { getNameThatTuneRounds, CATEGORIES } from '../lib/api'
@@ -9,7 +9,9 @@ import JoinQrCode from '../components/JoinQrCode'
 
 const SNIPPET_DURATION_MS = 10000
 const DEFAULT_QUESTION_COUNT = 5
-const QUESTION_COUNTS = [5, 10, 15, 20] as const
+const MIN_QUESTION_COUNT = 5
+const MAX_QUESTION_COUNT = 50
+const QUESTION_COUNT_STEP = 5
 const SOLO_ANSWER_WINDOW_MS = 10000
 const SOLO_RESULT_DISPLAY_MS = 2500
 const SOLO_MIN_SCORE = 100
@@ -28,6 +30,20 @@ function TimerBar({ remainingMs, durationMs }: { remainingMs: number; durationMs
         <div className="h-full bg-accent" style={{ width: `${pct}%`, transition: 'width 100ms linear' }} />
       </div>
       <div className="font-mono-chart font-bold text-lg w-6 text-right">{seconds}</div>
+    </div>
+  )
+}
+
+function Stepper({ value, onPrev, onNext, prevDisabled, nextDisabled }: { value: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean }) {
+  return (
+    <div className="stepper-control brutal-panel bg-white flex items-center justify-between px-3 py-2.5">
+      <button type="button" onClick={onPrev} disabled={prevDisabled} aria-label="Previous" className="stepper-arrow brutal-press">
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <span className="font-display uppercase text-2xl">{value}</span>
+      <button type="button" onClick={onNext} disabled={nextDisabled} aria-label="Next" className="stepper-arrow brutal-press">
+        <ChevronRight className="w-5 h-5" />
+      </button>
     </div>
   )
 }
@@ -289,6 +305,16 @@ function NameThatTune() {
     return () => clearTimeout(timer)
   }, [screen, soloIndex, soloRounds.length])
 
+  function cycleCategory(direction: 1 | -1) {
+    const index = CATEGORIES.findIndex((c) => c.id === category)
+    const next = (index + direction + CATEGORIES.length) % CATEGORIES.length
+    setCategory(CATEGORIES[next].id)
+  }
+
+  function stepQuestionCount(direction: 1 | -1) {
+    setQuestionCount((count) => Math.min(MAX_QUESTION_COUNT, Math.max(MIN_QUESTION_COUNT, count + direction * QUESTION_COUNT_STEP)))
+  }
+
   async function startSolo() {
     setError(null)
     setLoading(true)
@@ -418,31 +444,24 @@ function NameThatTune() {
               <div>
                 <p className="font-display uppercase text-2xl">Choose your era</p>
                 <p className="font-mono-chart text-sm mt-1">General shuffles the whole record rack.</p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {CATEGORIES.map((c, index) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setCategory(c.id)}
-                    className={`category-tile brutal-press ${category === c.id ? 'is-selected' : ''}`}
-                    style={{ '--tile-delay': `${index * 35}ms` } as React.CSSProperties}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+                <div className="mt-3">
+                  <Stepper
+                    value={CATEGORIES.find((c) => c.id === category)?.label ?? ''}
+                    onPrev={() => cycleCategory(-1)}
+                    onNext={() => cycleCategory(1)}
+                  />
+                </div>
               </div>
               <div>
                 <p className="font-display uppercase text-2xl">How many questions?</p>
-                <div className="grid grid-cols-4 gap-3 mt-3">
-                  {QUESTION_COUNTS.map((count) => (
-                    <button
-                      key={count}
-                      onClick={() => setQuestionCount(count)}
-                      className={`question-count-tile brutal-press ${questionCount === count ? 'is-selected' : ''}`}
-                    >
-                      {count}
-                    </button>
-                  ))}
+                <div className="mt-3">
+                  <Stepper
+                    value={String(questionCount)}
+                    onPrev={() => stepQuestionCount(-1)}
+                    onNext={() => stepQuestionCount(1)}
+                    prevDisabled={questionCount <= MIN_QUESTION_COUNT}
+                    nextDisabled={questionCount >= MAX_QUESTION_COUNT}
+                  />
                 </div>
               </div>
             </div>
