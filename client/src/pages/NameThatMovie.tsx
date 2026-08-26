@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Clapperboard, Crown, Film, Flame, Headphones, Radio, Users, Volume2, VolumeX } from 'lucide-react'
+import { Clapperboard, ChevronLeft, ChevronRight, Crown, Film, Flame, Headphones, Radio, Users, Volume2, VolumeX } from 'lucide-react'
 import { CATEGORIES, getNameThatMovieRounds } from '../lib/api'
 import type { Category, NameThatMovieRound } from '../lib/api'
 import { getSocket } from '../lib/socket'
@@ -8,7 +8,11 @@ import JoinQrCode from '../components/JoinQrCode'
 
 const ROUND_MS = 10000
 const RESULT_MS = 2500
-const COUNTS = [5, 10, 15, 20] as const
+const MIN_COUNT = 5
+const MAX_COUNT = 50
+const COUNT_STEP = 5
+// TMDB backdrop/soundtrack coverage thins out before the 70s, so movie rounds stick to general or 1970s+.
+const MOVIE_CATEGORIES = CATEGORIES.filter((item) => item.id === 'general' || Number(item.id.slice(0, 4)) >= 1970)
 type Screen = 'menu' | 'lobby' | 'playing' | 'result' | 'end' | 'solo-playing' | 'solo-result' | 'solo-end'
 type Mode = 'solo' | 'create' | 'join'
 
@@ -24,6 +28,10 @@ function Leaderboard({ players, scores, streaks = {}, self }: { players: Player[
       <span className="flex items-center gap-3">{(streaks[player.id] ?? player.streak) >= 2 && <span className="streak-badge"><Flame className="w-4 h-4" />{streaks[player.id] ?? player.streak}</span>}<b className="font-mono-chart text-lg">{scores[player.id] ?? player.score}</b></span>
     </div>
   ))}</div>
+}
+
+function Stepper({ value, onPrev, onNext, prevDisabled, nextDisabled }: { value: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean }) {
+  return <div className="stepper-control brutal-panel bg-white flex items-center justify-between px-3 py-2.5"><button type="button" onClick={onPrev} disabled={prevDisabled} aria-label="Previous" className="stepper-arrow brutal-press"><ChevronLeft className="w-5 h-5" /></button><span className="font-display uppercase text-2xl">{value}</span><button type="button" onClick={onNext} disabled={nextDisabled} aria-label="Next" className="stepper-arrow brutal-press"><ChevronRight className="w-5 h-5" /></button></div>
 }
 
 function MovieFrame({ src }: { src: string }) {
@@ -114,6 +122,15 @@ export default function NameThatMovie() {
     return () => clearTimeout(timer)
   }, [screen, index, rounds.length])
 
+  function cycleCategory(direction: 1 | -1) {
+    const idx = MOVIE_CATEGORIES.findIndex((item) => item.id === category)
+    const next = (idx + direction + MOVIE_CATEGORIES.length) % MOVIE_CATEGORIES.length
+    setCategory(MOVIE_CATEGORIES[next].id)
+  }
+  function stepCount(direction: 1 | -1) {
+    setCount((value) => Math.min(MAX_COUNT, Math.max(MIN_COUNT, value + direction * COUNT_STEP)))
+  }
+
   async function startSolo() {
     setLoading(true); setError(null)
     try { const data = await getNameThatMovieRounds(count, category); if (!data.rounds.length) throw new Error('No movie rounds are available.'); setRounds(data.rounds); setIndex(0); setScore(0); setScreen('solo-playing') }
@@ -133,9 +150,9 @@ export default function NameThatMovie() {
 
     {screen === 'menu' && <section className="brutal-panel candy-panel w-full max-w-2xl p-5 sm:p-8 flex flex-col gap-6">
       <div className="grid grid-cols-3 gap-3">{([['solo', Headphones], ['create', Radio], ['join', Users]] as const).map(([value, Icon]) => <button key={value} onClick={() => setMode(value)} className={`mode-tile brutal-press ${mode === value ? 'is-selected' : ''}`}><Icon className="w-5 h-5" />{value === 'create' ? 'Host' : value[0].toUpperCase() + value.slice(1)}</button>)}</div>
-      {mode !== 'join' && <><div><p className="font-display uppercase text-2xl">Choose an era</p><div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">{CATEGORIES.filter((item) => item.id === 'general' || Number(item.id.slice(0, 4)) >= 1970).map((item) => <button key={item.id} onClick={() => setCategory(item.id)} className={`category-tile brutal-press ${category === item.id ? 'is-selected' : ''}`}>{item.label}</button>)}</div></div><div><p className="font-display uppercase text-2xl">Questions</p><div className="grid grid-cols-4 gap-3 mt-3">{COUNTS.map((value) => <button key={value} onClick={() => setCount(value)} className={`question-count-tile brutal-press ${count === value ? 'is-selected' : ''}`}>{value}</button>)}</div></div></>}
+      {mode !== 'join' && <><div><p className="font-display uppercase text-2xl">Choose an era</p><div className="mt-3"><Stepper value={MOVIE_CATEGORIES.find((item) => item.id === category)?.label ?? ''} onPrev={() => cycleCategory(-1)} onNext={() => cycleCategory(1)} /></div></div><div><p className="font-display uppercase text-2xl">Questions</p><div className="mt-3"><Stepper value={String(count)} onPrev={() => stepCount(-1)} onNext={() => stepCount(1)} prevDisabled={count <= MIN_COUNT} nextDisabled={count >= MAX_COUNT} /></div></div></>}
       {mode === 'create' && <div className="grid grid-cols-2 gap-3"><button onClick={() => setRemote(false)} className={`playback-mode-tile brutal-press ${!remote ? 'is-selected' : ''}`}><Users className="w-6 h-6" /><strong>Party</strong><span>Host audio</span></button><button onClick={() => setRemote(true)} className={`playback-mode-tile brutal-press ${remote ? 'is-selected' : ''}`}><Headphones className="w-6 h-6" /><strong>Remote</strong><span>Audio everywhere</span></button></div>}
-      {mode !== 'solo' && <input className="game-input" value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" />}{mode === 'join' && <input className="game-input uppercase" value={codeInput} onChange={(event) => setCodeInput(event.target.value)} placeholder="Room code" />}
+      {(mode === 'join' || (mode === 'create' && remote)) && <input className="game-input" value={name} onChange={(event) => setName(event.target.value)} placeholder={mode === 'create' ? 'Host player name' : 'Your name'} />}{mode === 'join' && <input className="game-input uppercase" value={codeInput} onChange={(event) => setCodeInput(event.target.value)} placeholder="Room code" />}
       <button disabled={loading} onClick={mode === 'solo' ? startSolo : mode === 'create' ? createRoom : joinRoom} className="brutal-btn brutal-btn-accent self-center min-w-44">{loading ? 'Loading…' : mode === 'solo' ? 'Play solo' : mode === 'create' ? 'Create' : 'Join'}</button>{error && <p className="error-bubble">{error}{error.includes('TMDB') && ' Add it to the root .env file, then restart the server.'}</p>}
     </section>}
 
