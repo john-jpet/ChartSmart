@@ -125,7 +125,7 @@ export default function NameThatMovie() {
   function answer(option: number, solo = false) { if (selectedRef.current !== null) return; selectedRef.current = option; setSelected(option); if (solo) setTimeout(() => finalizeRef.current(), 450); else socket.current.emit('game:submit_answer', { roomCode, optionIndex: option }) }
   function reset() { if (roomRef.current) socket.current.emit('room:leave'); audio.current?.pause(); setScreen('menu'); setRoomCode(null); setPlayers([]); setRound(null); setFinal(null); setError(null); setSelected(null); selectedRef.current = null }
   const soloRound = rounds[index]
-  const active = screen === 'solo-playing' ? soloRound : round
+  const active = screen === 'solo-playing' || screen === 'solo-result' ? soloRound : round
   const remaining = Math.max(0, ROUND_MS - (now - startedRef.current))
 
   return <div className="game-page game-page-violet flex-1 flex flex-col items-center gap-8 px-4 sm:px-8 py-10 sm:py-14">
