@@ -1,11 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
+import { MANUAL_PRE_1958_TRACKS } from "./manualPre1958Tracks.mjs";
 
+// Source dataset: https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/all.json
+// (Billboard Hot 100 history, weekly, back to August 1958 — download it locally and pass its path here.)
 const sourcePath = process.argv[2];
 const outputPath = process.argv[3] ?? path.resolve("src/data/nameThatTuneTracks.ts");
 
 if (!sourcePath) {
   console.error("Usage: node scripts/buildTrackCatalog.mjs <billboard-all.json> [output.ts]");
+  console.error("  <billboard-all.json> from https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/all.json");
   process.exit(1);
 }
 
@@ -78,11 +82,37 @@ for (const decade of decades) {
   catalogs.set(decade, selected);
 }
 
+function dedupeByKey(tracks) {
+  const seen = new Set();
+  return tracks.filter((track) => {
+    const key = `${canonical(track.artist)}::${canonical(track.title)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// Billboard's Hot 100 didn't launch until August 1958, so pre-1958 standards
+// have no chart data. Append them to the 1950s bucket on top of the normal
+// per-decade cap — they're a small, fixed, already-vetted list. A handful
+// actually charted in 1958-59 and are already present in the generated data,
+// so drop those to avoid duplicates.
+const generated1950 = catalogs.get(1950);
+const generated1950Keys = new Set(generated1950.map((t) => `${canonical(t.artist)}::${canonical(t.title)}`));
+const manualPre1958 = dedupeByKey(MANUAL_PRE_1958_TRACKS).filter(
+  (t) => !generated1950Keys.has(`${canonical(t.artist)}::${canonical(t.title)}`)
+);
+catalogs.set(1950, [
+  ...manualPre1958.map((track) => ({ ...track, firstChartYear: track.releaseYear })),
+  ...generated1950,
+]);
+
 const q = (value) => JSON.stringify(value);
 const lines = [
   "/**",
   " * Static Name That Tune / Higher-Lower catalog generated from historical Billboard Hot 100 charts.",
   " * Regenerate with: node scripts/buildTrackCatalog.mjs <billboard-all.json> src/data/nameThatTuneTracks.ts",
+  " * <billboard-all.json>: https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/all.json",
   " */",
   "import { Category, SeedTrack } from \"./seedTracks\";",
   "",
@@ -94,7 +124,8 @@ const lines = [
 for (const decade of decades) {
   lines.push(`  \"${decade}s\": [`);
   for (const song of catalogs.get(decade)) {
-    lines.push(`    { title: ${q(song.title)}, artist: ${q(song.artist)}, releaseYear: ${song.firstChartYear} },`);
+    const popularity = song.chartPoints !== undefined ? `, popularity: ${song.chartPoints}` : "";
+    lines.push(`    { title: ${q(song.title)}, artist: ${q(song.artist)}, releaseYear: ${song.firstChartYear}${popularity} },`);
   }
   lines.push("  ],");
 }

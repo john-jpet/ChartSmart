@@ -3,6 +3,8 @@ export interface SeedTrack {
   title: string;
   artist: string;
   releaseYear: number;
+  /** Billboard-chart-derived recognizability score (Name That Tune catalog only; absent on this hand-picked list). */
+  popularity?: number;
 }
 
 export const SEED_TRACKS: SeedTrack[] = [

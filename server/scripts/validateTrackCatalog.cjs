@@ -16,7 +16,10 @@ for (const { id } of CATEGORIES) {
     const wrongDecade = tracks.filter(
       (track) => track.releaseYear < decade || track.releaseYear >= decade + 10
     ).length;
-    if (tracks.length > 500 || tracks.length < 4 || duplicates || wrongDecade) failed = true;
+    // 1950s gets extra headroom: pre-1958 standards have no Hot 100 chart data,
+    // so they're merged in on top of the normal 500-track generated cap.
+    const cap = decade === 1950 ? 800 : 500;
+    if (tracks.length > cap || tracks.length < 4 || duplicates || wrongDecade) failed = true;
     console.log(`${id}: ${tracks.length} tracks, ${new Set(tracks.map((track) => track.artist)).size} credited artists, ${duplicates} duplicates, ${wrongDecade} wrong-decade entries`);
   } else {
     if (duplicates) failed = true;
