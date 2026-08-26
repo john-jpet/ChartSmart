@@ -152,6 +152,14 @@ function NameThatTune() {
       setFinalPlayers(payload.players)
       setScreen('end')
     }
+    function onRoomRestarted() {
+      setRound(null)
+      setRoundResult(null)
+      setFinalScores({})
+      setFinalPlayers([])
+      setStarting(false)
+      setScreen('lobby')
+    }
 
     socket.on('room:created', onRoomCreated)
     socket.on('room:joined', onRoomJoined)
@@ -161,6 +169,7 @@ function NameThatTune() {
     socket.on('game:round_start', onRoundStart)
     socket.on('game:round_end', onRoundEnd)
     socket.on('game:end_game', onEndGame)
+    socket.on('room:restarted', onRoomRestarted)
 
     return () => {
       socket.off('room:created', onRoomCreated)
@@ -171,6 +180,7 @@ function NameThatTune() {
       socket.off('game:round_start', onRoundStart)
       socket.off('game:round_end', onRoundEnd)
       socket.off('game:end_game', onEndGame)
+      socket.off('room:restarted', onRoomRestarted)
     }
   }, [])
 
@@ -335,6 +345,11 @@ function NameThatTune() {
     if (!roomCode || starting) return
     setStarting(true)
     socketRef.current.emit('room:start', { roomCode })
+  }
+
+  function restartGame() {
+    if (!roomCode) return
+    socketRef.current.emit('room:restart', { roomCode })
   }
 
   function submitAnswer(optionIndex: number) {
@@ -562,9 +577,13 @@ function NameThatTune() {
         <div className="w-full max-w-sm flex flex-col items-center gap-5">
           <h2 className="font-display uppercase text-2xl">Final scores</h2>
           <Leaderboard players={finalPlayers} scores={finalScores} currentPlayerId={socketRef.current.id} />
-          <button onClick={playAgain} className="brutal-btn brutal-btn-accent px-8">
-            Play again
-          </button>
+          {isHost ? (
+            <button onClick={restartGame} className="brutal-btn brutal-btn-accent px-8">
+              Play again
+            </button>
+          ) : (
+            <p className="font-mono-chart text-sm opacity-60">waiting for host to restart…</p>
+          )}
         </div>
       )}
 

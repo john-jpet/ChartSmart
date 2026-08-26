@@ -111,6 +111,20 @@ class RoomManager {
     room.timers = [];
   }
 
+  resetForNewGame(room: Room): void {
+    this.clearTimers(room);
+    room.state = "LOBBY";
+    room.round = 0;
+    room.usedTrackIds = new Set();
+    room.currentCorrectIndex = null;
+    room.roundStartedAt = null;
+    room.answers = new Map();
+    for (const player of room.players.values()) {
+      player.score = 0;
+      player.streak = 0;
+    }
+  }
+
   playersList(room: Room): Player[] {
     return Array.from(room.players.values());
   }

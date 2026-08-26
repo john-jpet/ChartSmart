@@ -183,6 +183,14 @@ export function registerSocketHandlers(io: Server) {
       void startRound(io, room);
     });
 
+    socket.on("room:restart", ({ roomCode }: { roomCode: string }) => {
+      const room = roomManager.getRoom(roomCode);
+      if (!room || room.hostId !== socket.id || room.state !== "END_GAME") return;
+      roomManager.resetForNewGame(room);
+      io.to(room.code).emit("room:restarted", { roomCode: room.code });
+      broadcastRoomUpdate(io, room);
+    });
+
     socket.on(
       "game:submit_answer",
       ({ roomCode, optionIndex }: { roomCode: string; optionIndex: number; clientTimeMs?: number }) => {
