@@ -4,6 +4,7 @@ const NAV_LINKS = [
   { to: '/higher-lower', label: 'Higher/Lower' },
   { to: '/album-blitz', label: 'Album Blitz' },
   { to: '/name-that-tune', label: 'Name That Tune' },
+  { to: '/name-that-movie', label: 'Name That Movie' },
 ]
 
 function App() {

@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { roomManager, Room } from "../game/roomManager";
 import { selectRound } from "../game/nameThatTune";
 import { isCategory, Category } from "../data/seedTracks";
+import { selectMovieRound } from "../game/nameThatMovie";
 
 const ROUND_ANSWER_WINDOW_MS = 10000;
 const ROUND_RESULT_DISPLAY_MS = 4000;
@@ -43,9 +44,14 @@ async function startRound(io: Server, room: Room) {
   room.state = "ROUND_START";
   let roundData;
   try {
-    roundData = await selectRound(room.usedTrackIds, room.settings.category);
-  } catch {
-    io.to(room.code).emit("room:cancelled", { error: "The next round could not be loaded." });
+    roundData = room.settings.gameType === "movie"
+      ? await selectMovieRound(room.usedTrackIds, room.settings.category)
+      : await selectRound(room.usedTrackIds, room.settings.category);
+  } catch (error) {
+    const message = room.settings.gameType === "movie" && error instanceof Error && error.message.includes("TMDB")
+      ? error.message
+      : "The next round could not be loaded.";
+    io.to(room.code).emit("room:cancelled", { error: message });
     room.state = "END_GAME";
     roomManager.deleteRoom(room.code);
     return;
@@ -69,7 +75,8 @@ async function startRound(io: Server, room: Room) {
       round: room.round,
       totalRounds: room.settings.totalRounds,
       previewUrl: receivesAudio ? roundData.previewUrl : undefined,
-      artworkUrl: roundData.artworkUrl,
+      imageUrl: "imageUrl" in roundData ? roundData.imageUrl : undefined,
+      artworkUrl: "artworkUrl" in roundData ? roundData.artworkUrl : undefined,
       options: roundData.options,
       durationMs: ROUND_ANSWER_WINDOW_MS,
       playbackMode: room.settings.playbackMode,
@@ -141,7 +148,7 @@ export function registerSocketHandlers(io: Server) {
   io.on("connection", (socket: Socket) => {
     socket.on(
       "room:create",
-      ({ hostName, settings }: { hostName: string; settings?: { totalRounds?: number; category?: string; playbackMode?: string } }) => {
+      ({ hostName, settings }: { hostName: string; settings?: { totalRounds?: number; category?: string; playbackMode?: string; gameType?: string } }) => {
         const category: Category =
           settings?.category && isCategory(settings.category) ? settings.category : "general";
         const requestedRounds = Number(settings?.totalRounds) || DEFAULT_TOTAL_ROUNDS;
@@ -149,6 +156,7 @@ export function registerSocketHandlers(io: Server) {
           totalRounds: Math.max(MIN_TOTAL_ROUNDS, Math.min(requestedRounds, MAX_TOTAL_ROUNDS)),
           category,
           playbackMode: settings?.playbackMode === "remote" ? "remote" : "party",
+          gameType: settings?.gameType === "movie" ? "movie" : "tune",
         });
         socket.join(room.code);
         socket.emit("room:created", { roomCode: room.code });
@@ -156,7 +164,7 @@ export function registerSocketHandlers(io: Server) {
       }
     );
 
-    socket.on("room:join", ({ roomCode, playerName }: { roomCode: string; playerName: string }) => {
+    socket.on("room:join", ({ roomCode, playerName, gameType }: { roomCode: string; playerName: string; gameType?: string }) => {
       const normalizedCode = String(roomCode || "").trim().toUpperCase();
       if (!/^[A-Z2-9]{5}$/.test(normalizedCode)) {
         socket.emit("room:error", { code: "INVALID_CODE", error: "Enter a valid 5-character room code." });
@@ -165,6 +173,11 @@ export function registerSocketHandlers(io: Server) {
       const room = roomManager.joinRoom(normalizedCode, socket.id, String(playerName || "Player").trim().slice(0, 24));
       if (!room) {
         socket.emit("room:error", { code: "ROOM_NOT_FOUND", error: "Room not found, or the game has already started." });
+        return;
+      }
+      if (gameType && room.settings.gameType !== gameType) {
+        roomManager.removePlayer(socket.id);
+        socket.emit("room:error", { code: "ROOM_NOT_FOUND", error: `That code belongs to a different game.` });
         return;
       }
       socket.join(room.code);

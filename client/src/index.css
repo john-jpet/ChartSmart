@@ -172,6 +172,7 @@ body {
   .game-page-yellow { background-color: #fff1a9; }
   .game-page-cyan { background-color: #bff5ff; }
   .game-page-pink { background-color: #ffd3e8; }
+  .game-page-violet { background-color: #d9d0ff; }
   .game-title { font-family: var(--font-display); font-size: clamp(3rem, 9vw, 6rem); line-height: .85; text-transform: uppercase; text-shadow: 4px 4px 0 white, 7px 7px 0 var(--color-ink); }
   .text-pink { color: var(--color-rose); }
   .candy-panel { background: linear-gradient(145deg,#fff 0 72%,#e7e0ff 72%); }
@@ -209,6 +210,7 @@ body {
   .you-badge { font-family:var(--font-mono-chart); font-size:.6rem; font-weight:900; background:var(--color-ink); color:white; border-radius:999px; padding:.2rem .4rem; }
   .streak-badge { display:inline-flex; align-items:center; gap:.2rem; color:#b93600; font-family:var(--font-mono-chart); font-size:.75rem; font-weight:900; }
   .album-cover { width: 9rem; height: 9rem; object-fit: cover; border: 3px solid var(--color-ink); box-shadow: 5px 5px 0 var(--color-rose); }
+  .movie-frame { border: 3px solid var(--color-ink); box-shadow: 8px 8px 0 var(--color-rose); transform: rotate(-.4deg); }
   .rotate-card { transform: rotate(-.5deg); }
   .score-badge { display:flex; align-items:center; justify-content:center; gap:.35rem; min-width:6rem; background:var(--color-yellow); border:3px solid var(--color-ink); border-radius:.55rem; box-shadow:4px 4px 0 var(--color-ink); padding:.55rem .7rem; font-family:var(--font-mono-chart); font-weight:900; }
   .bg-cyan { background: var(--color-cyan); }

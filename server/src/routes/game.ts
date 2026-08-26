@@ -4,6 +4,7 @@ import { selectRound } from "../game/nameThatTune";
 import { isCategory, Category } from "../data/seedTracks";
 import { tracksForCategory } from "../data/seedTracks";
 import { searchArtist, lookupArtistAlbums, lookupAlbumTracks } from "../services/itunes";
+import { selectMovieRound } from "../game/nameThatMovie";
 
 export const gameRouter = Router();
 
@@ -31,6 +32,29 @@ gameRouter.get("/name-that-tune/rounds", async (req, res, next) => {
     const rounds = [];
     for (let i = 0; i < count; i++) {
       const round = await selectRound(usedTrackIds, category);
+      if (!round) break;
+      rounds.push(round);
+    }
+    res.json({ category, rounds });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** Solo Name That Movie rounds. Images come from TMDB; score previews come from iTunes when available. */
+gameRouter.get("/name-that-movie/rounds", async (req, res, next) => {
+  try {
+    if (!process.env.TMDB_ACCESS_TOKEN?.trim() && !process.env.TMDB_API_KEY?.trim()) {
+      res.status(503).json({ error: "Name That Movie needs TMDB_ACCESS_TOKEN or TMDB_API_KEY in the server environment." });
+      return;
+    }
+    const count = Math.max(5, Math.min(Number(req.query.count) || 5, 20));
+    const categoryParam = req.query.category as string | undefined;
+    const category: Category = categoryParam && isCategory(categoryParam) ? categoryParam : "general";
+    const usedIds = new Set<string>();
+    const rounds = [];
+    for (let i = 0; i < count; i++) {
+      const round = await selectMovieRound(usedIds, category);
       if (!round) break;
       rounds.push(round);
     }

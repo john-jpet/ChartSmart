@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { TrendingUp, ListChecks, Users, ArrowRight } from 'lucide-react'
+import { TrendingUp, ListChecks, Users, ArrowRight, Clapperboard } from 'lucide-react'
 import VinylBadge from '../components/VinylBadge'
 
 const MODES = [
@@ -23,6 +23,13 @@ const MODES = [
     title: 'Name That Tune',
     description: 'Race friends in a live room to identify songs from short audio snippets.',
     players: '2+ players',
+  },
+  {
+    to: '/name-that-movie',
+    icon: Clapperboard,
+    title: 'Name That Movie',
+    description: 'Identify movies from cinematic stills, backed by a cue from the original soundtrack when available.',
+    players: '1–8 players',
   },
 ]
 
