@@ -47,6 +47,14 @@ export interface NameThatTuneRound {
   correctIndex: number;
 }
 
+export interface NameThatMovieRound {
+  trackKey: string;
+  imageUrl: string;
+  previewUrl?: string;
+  options: string[];
+  correctIndex: number;
+}
+
 export type Category = "general" | "1950s" | "1960s" | "1970s" | "1980s" | "1990s" | "2000s" | "2010s" | "2020s";
 
 export const CATEGORIES: { id: Category; label: string }[] = [
@@ -105,6 +113,13 @@ export function getNameThatTuneRounds(
   category: Category = "general"
 ): Promise<{ category: Category; rounds: NameThatTuneRound[] }> {
   return getJson(`/api/game/name-that-tune/rounds?count=${count}&category=${category}`);
+}
+
+export function getNameThatMovieRounds(
+  count = 5,
+  category: Category = "general"
+): Promise<{ category: Category; rounds: NameThatMovieRound[] }> {
+  return getJson(`/api/game/name-that-movie/rounds?count=${count}&category=${category}`);
 }
 
 export function getAlbumBlitzRound(

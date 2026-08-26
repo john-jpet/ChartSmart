@@ -12,6 +12,7 @@ export interface GameSettings {
   totalRounds: number;
   category: Category;
   playbackMode: "party" | "remote";
+  gameType: "tune" | "movie";
 }
 
 export type RoomState = "LOBBY" | "ROUND_START" | "PLAYING" | "ROUND_RESULT" | "END_GAME";
