@@ -4,20 +4,6 @@ import VinylBadge from '../components/VinylBadge'
 
 const MODES = [
   {
-    to: '/higher-lower',
-    icon: TrendingUp,
-    title: 'Higher or Lower',
-    description: 'Guess which artist or song has more plays. One miss ends the streak.',
-    players: '1 player',
-  },
-  {
-    to: '/album-blitz',
-    icon: ListChecks,
-    title: 'Album Blitz',
-    description: 'Pick a decade, get a surprise album, and name its tracks before time runs out.',
-    players: '1 player',
-  },
-  {
     to: '/name-that-tune',
     icon: Users,
     title: 'Name That Tune',
@@ -30,6 +16,20 @@ const MODES = [
     title: 'Name That Movie',
     description: 'Identify movies from cinematic stills, backed by a cue from the original soundtrack when available.',
     players: '2+ players',
+  },
+  {
+    to: '/higher-lower',
+    icon: TrendingUp,
+    title: 'Higher or Lower',
+    description: 'Guess which artist or song has more plays. One miss ends the streak.',
+    players: '1 player',
+  },
+  {
+    to: '/album-blitz',
+    icon: ListChecks,
+    title: 'Album Blitz',
+    description: 'Pick a decade, get a surprise album, and name its tracks before time runs out.',
+    players: '1 player',
   },
 ]
 
@@ -67,7 +67,7 @@ function Home() {
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h2 className="font-display uppercase text-2xl sm:text-3xl tracking-tight">
-                  <span aria-hidden className="text-rose">
+                  <span aria-hidden className="text-rose" style={{ WebkitTextStroke: '1.5px var(--color-ink)' }}>
                     ♪{' '}
                   </span>
                   {mode.title}
