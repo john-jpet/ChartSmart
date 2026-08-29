@@ -11,7 +11,6 @@
   --color-bad: #ff4b4b;
   --color-yellow: #ffe44d;
   --color-cyan: #44dcf3;
-  --color-orange: #ff8a34;
 
   --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
   --font-mono-chart: "JetBrains Mono", ui-monospace, monospace;
@@ -153,10 +152,10 @@ body {
   .app-shell { background: transparent; }
   .site-header { background: rgba(255,247,223,.94); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 30; }
   .logo-word { text-shadow: 3px 3px 0 var(--color-yellow); transform: rotate(-2deg); display: inline-block; }
-  .nav-pill:nth-child(1) { background: var(--color-yellow); }
-  .nav-pill:nth-child(2) { background: var(--color-cyan); }
-  .nav-pill:nth-child(3) { background: var(--color-rose); }
-  .nav-pill:nth-child(4) { background: var(--color-orange); }
+  .nav-pill:nth-child(1) { background: var(--color-rose); }
+  .nav-pill:nth-child(2) { background: var(--color-yellow); }
+  .nav-pill:nth-child(3) { background: var(--color-cyan); }
+  .nav-pill:nth-child(4) { background: var(--color-rose); }
   .nav-pill.is-active { background: var(--color-accent); color: white; transform: rotate(-2deg); }
   .hero-stage { background: linear-gradient(120deg, var(--color-yellow) 0 48%, var(--color-cyan) 48% 100%); min-height: 58vh; }
   .hero-stage::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg,transparent 0 50px,rgba(33,24,74,.08) 50px 53px); pointer-events:none; }
@@ -166,7 +165,7 @@ body {
   .mode-row:nth-child(1) { background: var(--color-rose); }
   .mode-row:nth-child(2) { background: var(--color-yellow); }
   .mode-row:nth-child(3) { background: var(--color-cyan); }
-  .mode-row:nth-child(4) { background: var(--color-orange); }
+  .mode-row:nth-child(4) { background: var(--color-rose); }
   .mode-row:hover { color: var(--color-ink); filter: saturate(1.1); }
   .mode-row:hover .mode-icon { transform: rotate(-10deg) scale(1.18); }
   .mode-icon { background: white; border: 3px solid var(--color-ink); box-shadow: 5px 5px 0 var(--color-ink); padding: .45rem; border-radius: .7rem; transition: transform .2s cubic-bezier(.2,.9,.3,1.5); }
