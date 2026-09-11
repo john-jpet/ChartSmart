@@ -1,91 +1,127 @@
 # ChartSmart
 
-A music trivia arcade built on real playcounts, real audio previews, and real discography data — no mocked content. Three game modes, single-player and multiplayer, pulling live from iTunes, Last.fm, and MusicBrainz.
+ChartSmart is a music and movie trivia arcade. It combines live metadata, play counts, artwork, and audio previews from third-party services with curated catalogs and real-time multiplayer rooms.
 
 ## Game modes
 
-- **Higher or Lower** — guess whether an artist or song has more plays than the last. One wrong guess ends the streak. Includes a daily mode that deals the same 10-pair sequence to every player globally via an epoch-seeded shuffle.
-- **Album Blitz** — pick a decade (or General for anything), get handed a surprise album from that era, and type as many track titles as you can before the clock runs out. Guesses are fuzzy-matched (punctuation/case/`feat.` insensitive) against the real tracklist.
-- **Name That Tune** — identify songs from short audio snippets. Play solo against the clock, or create/join a live multiplayer room where everyone races for the fastest correct answer. Rounds can be filtered to a specific decade (60s–20s) or General. Hosts can also choose **Party mode** (audio plays on the host's device, everyone looks at one screen) or **Remote mode** (audio streams to every player's own device).
+- **Higher or Lower** — compare artist or song play counts. Keep the streak going, or play the daily challenge, which gives everyone the same UTC-day sequence.
+- **Album Blitz** — choose a decade, get a surprise album, and type as many track titles as possible before time runs out. Answers are fuzzy-matched for case, punctuation, and common featured-artist variations.
+- **Name That Tune** — identify songs from short audio previews. Play solo or race other players in a Socket.io room, with decade filters and Party or Remote playback modes.
+- **Name That Movie** — identify films from score previews and movie artwork. Play solo or in multiplayer rooms, with decade filters and Party or Remote playback modes.
 
-## Tech stack
+## Stack and data sources
 
-- **Client:** React + TypeScript, Vite, Tailwind CSS, React Router, Socket.io client, Fuse.js
-- **Server:** Node.js, Express, Socket.io, TypeScript
-- **Data sources:** iTunes Search API (track/album metadata, artwork, 30s previews), Last.fm API (playcounts, listener stats), MusicBrainz API (discography cross-referencing)
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, React Router, Socket.io Client, Fuse.js
+- **Backend:** Node.js, Express, TypeScript, Socket.io
+- **Music data:** iTunes Search API, Last.fm API, and MusicBrainz API
+- **Movie data:** TMDB API, with iTunes used for available score previews
 
-## Project structure
+## Repository layout
 
+```text
+client/                 React + Vite frontend
+  src/pages/            Game screens and routes
+  src/components/       Shared UI components
+  src/lib/              API and Socket.io clients
+server/                 Express + Socket.io backend
+  src/routes/           REST endpoints
+  src/services/         Third-party API adapters and caching
+  src/game/             Game and room logic
+  src/data/             Seed and generated catalogs
+  src/socket/           Multiplayer event handlers
+  scripts/              Catalog generation and validation tools
+.env.example            Local configuration template
 ```
-├── client/           React + Vite frontend
-│   └── src/
-│       ├── pages/     One component per game mode
-│       ├── components/
-│       └── lib/       API client + Socket.io wrapper
-├── server/           Express + Socket.io backend
-│   └── src/
-│       ├── routes/    REST endpoints (tracks, artists, albums, game)
-│       ├── services/  Third-party API adapters + caching
-│       ├── game/      Game logic (Higher/Lower chains, Name That Tune rounds, room manager)
-│       ├── data/      Curated seed track/artist pools
-│       └── socket/    Multiplayer room/round event handlers
-└── .env               Last.fm credentials (see below)
-```
 
-## Getting started
+## Requirements
 
-### Prerequisites
+- Node.js 20 or later
+- npm
+- A free [Last.fm API account](https://www.last.fm/api/account/create)
+- A TMDB API key or v4 read access token for **Name That Movie**
 
-- Node.js 20+ and npm
-- A [Last.fm API account](https://www.last.fm/api/account/create) (free) for `LAST_FM_API_KEY`
+## Local development
 
-### Setup
-
-1. Copy the example env file and fill in your Last.fm key:
+1. Create the local environment file:
 
    ```bash
    cp .env.example .env
    ```
 
-   ```
-   LAST_FM_API_KEY=your_key_here
-   LAST_FM_SHARED_SECRET=
-   LAST_FM_USERNAME=
+   Fill in at least these values:
+
+   ```dotenv
+   LAST_FM_API_KEY=your_last_fm_key
+   TMDB_ACCESS_TOKEN=your_tmdb_token
+   # Or use TMDB_API_KEY instead of TMDB_ACCESS_TOKEN
    PORT=4000
    ```
 
-2. Install dependencies from the repo root (this is an npm workspaces monorepo):
+   `LAST_FM_SHARED_SECRET`, `LAST_FM_USERNAME`, `VITE_API_URL`, and `VITE_SERVER_URL` are optional for the standard local setup.
+
+2. Install dependencies from the repository root:
 
    ```bash
    npm install
    ```
 
-3. Run the backend and frontend in separate terminals:
+3. Start the backend and frontend in separate terminals:
 
    ```bash
    npm run dev:server   # http://localhost:4000
    npm run dev:client   # http://localhost:5173
    ```
 
-The Vite dev server proxies `/api` requests to the backend, so just open `http://localhost:5173`.
+   Open <http://localhost:5173>. Vite proxies API requests to the backend during development.
 
-### Building for production
+## Production build
+
+Build both workspaces from the repository root:
 
 ```bash
 npm run build:server
 npm run build:client
 ```
 
-## API overview
+Then start the compiled server:
 
-| Endpoint | Description |
+```bash
+npm run start --workspace=server
+```
+
+The server hosts the compiled frontend from `client/dist` and serves the API and Socket.io connection from the same origin.
+
+## Useful commands
+
+```bash
+# Frontend linting
+npm run lint --workspace=client
+
+# Build a generated music catalog
+npm run catalog:build --workspace=server
+
+# Build and validate the generated catalog
+npm run catalog:validate --workspace=server
+```
+
+## HTTP API
+
+| Endpoint | Purpose |
 | --- | --- |
-| `GET /api/tracks/search?q=` | Search tracks, hydrated with Last.fm playcounts |
-| `GET /api/artists/:name` | Artist info (listeners, playcount) |
-| `GET /api/artists/:name/albums` | Artist's albums (iTunes + MusicBrainz) |
-| `GET /api/albums/:collectionId/tracks` | Full tracklist for an album |
-| `GET /api/game/higher-lower/pairs` | Higher/Lower round chain (`mode=artists\|tracks`, `daily=true\|false`) |
-| `GET /api/game/name-that-tune/rounds` | Solo Name That Tune rounds (`category=general\|1960s...2020s`) |
-| `GET /api/game/album-blitz/round` | Random album for Album Blitz (`category=general\|1960s...2020s`) |
+| `GET /health` | Server health check |
+| `GET /api/tracks/search?q=` | Search tracks; optionally set `hydrate=false` to skip Last.fm enrichment |
+| `GET /api/artists/:name` | Get Last.fm artist statistics |
+| `GET /api/artists/:name/albums` | Get an artist's albums from iTunes/MusicBrainz |
+| `GET /api/albums/:collectionId/tracks` | Get an album tracklist |
+| `GET /api/game/higher-lower/pairs` | Generate Higher or Lower pairs (`mode`, `daily`, `count`) |
+| `GET /api/game/name-that-tune/rounds` | Generate solo Name That Tune rounds (`category`, `count`) |
+| `GET /api/game/name-that-movie/rounds` | Generate solo Name That Movie rounds (`category`, `count`) |
+| `GET /api/game/album-blitz/round` | Generate an Album Blitz round (`category`) |
 
-Multiplayer Name That Tune runs over Socket.io (`room:create`, `room:join`, `room:start`, `game:submit_answer` → `room:updated`, `game:round_start`, `game:round_end`, `game:end_game`).
+Multiplayer games use Socket.io. The main events include `room:create`, `room:join`, `room:start`, `room:restart`, `room:leave`, and `game:submit_answer`; server updates include `room:updated`, `game:round_start`, `game:round_end`, and `game:end_game`.
+
+## Notes
+
+- Third-party API availability and rate limits can affect round generation.
+- Name That Movie requires TMDB credentials at runtime; without them, its API route returns a configuration error.
+- Do not commit `.env` or other files containing API credentials.
